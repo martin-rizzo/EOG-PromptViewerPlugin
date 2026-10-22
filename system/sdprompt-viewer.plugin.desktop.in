@@ -1,7 +1,7 @@
 [Plugin]
 Module=sdprompt-viewer
 IAge=3
-Name=Stable Diffusion Prompt Viewer
+Name=Prompt Viewer Plugin for EOG
 Icon=applications-science
 Description=Displays text prompts that are embedded within Stable Diffusion images.
 Authors=Martin Rizzo

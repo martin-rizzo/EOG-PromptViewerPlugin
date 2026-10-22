@@ -6,10 +6,10 @@
 # Repo    : https://github.com/martin-rizzo/SDPromptViewer
 # License : MIT
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#                      Stable Diffusion Prompt Viewer
+#                       Prompt Viewer Plugin for EOG
 #      A plugin for "Eye of GNOME" that displays SD embedded prompts.
 #   
-#     Copyright (c) 2023 Martin Rizzo
+#     Copyright (c) 2023-2026 Martin Rizzo
 #     
 #     Permission is hereby granted, free of charge, to any person obtaining
 #     a copy of this software and associated documentation files (the
@@ -36,7 +36,7 @@ SCRIPT_HELP="
 Usage: ./$SCRIPT_NAME [TARGET]
 
 This script compiles, executes, installs, and uninstalls
-the Stable Diffusion Prompt Viewer plugin for Eye of GNOME.
+the Prompt Viewer Plugin for Eye of GNOME.
 
 Available targets:
      build       Compiles the plugin.

@@ -6,10 +6,10 @@
  * @repo    https://github.com/martin-rizzo/SDPromptViewer
  * @license MIT
  *//*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      Stable Diffusion Prompt Viewer
+                       Prompt Viewer Plugin for EOG
       A plugin for "Eye of GNOME" that displays SD embedded prompts.
   
-     Copyright (c) 2023 Martin Rizzo
+     Copyright (c) 2023-2026 Martin Rizzo
   
      Permission is hereby granted, free of charge, to any person obtaining
      a copy of this software and associated documentation files (the
@@ -661,7 +661,7 @@ on_preferences_clicked( GtkWidget *widget, gpointer data ) {
       peas_gtk_configurable_create_configure_widget( PEAS_GTK_CONFIGURABLE( preferences ) );
 
     /* create a Gtk dialog that contains the plugin's configuration widget */
-    GtkWidget *dialog = gtk_dialog_new_with_buttons("Stable Diffusion Prompt Viewer",
+    GtkWidget *dialog = gtk_dialog_new_with_buttons("Prompt Viewer Plugin for EOG",
                                                      NULL,
                                                      GTK_DIALOG_MODAL,
                                                      "Close",
@@ -707,7 +707,7 @@ on_activate( EogWindowActivatable *activatable )
 
     /*-- add the user interface to the sidebar */
     eog_sidebar_add_page( plugin->sidebar,
-                          _("Stable Diffusion Prompt Viewer"),
+                          _("Prompt Viewer Plugin for EOG"),
                           plugin->page );
     gtk_widget_show_all( plugin->page );
 

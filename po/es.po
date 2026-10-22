@@ -1,6 +1,6 @@
 # Spanish translations for PACKAGE package
-# Traducciones al español para el paquete PACKAGE.
-# Copyright (C) 2023 THE PACKAGE'S COPYRIGHT HOLDER
+# Traducciones al espaï¿½ol para el paquete PACKAGE.
+# Copyright (c) 2023-2026 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # Martin <martinrizzo@gmail.com>, 2023.
 #
@@ -19,7 +19,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: system/sdprompt-viewer.plugin.desktop.in:5 sdprompt-viewer-plugin.c:710
-msgid "Stable Diffusion Prompt Viewer"
+msgid "Prompt Viewer Plugin for EOG"
 msgstr "Visor de Prompts de Stable Diffusion2"
 
 #: system/sdprompt-viewer.plugin.desktop.in:7

@@ -1,11 +1,16 @@
 /build
 
-# Hidden Directories #
-/.*/
+# Ignore all hidden files/folders in the root directory,
+# except for the specified files
+/.*
+!.gitignore
 
-# Backup Files (glade, msgmerge, ...) #
+
+# Ignore any file or folder ending with a tilde (~)
 *~
-~*
+*~.*
+*~/
+
 
 # Generated Files #
 /config.h
