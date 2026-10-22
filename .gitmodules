@@ -1,0 +1,3 @@
+[submodule "external/PromptExtractor"]
+	path = external/PromptExtractor
+	url = https://github.com/martin-rizzo/PromptExtractor
