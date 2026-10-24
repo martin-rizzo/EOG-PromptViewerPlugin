@@ -1,9 +1,9 @@
 [Plugin]
-Module=sdprompt-viewer
+Module=prompt-viewer
 IAge=3
-Name=Prompt Viewer Plugin for EOG
+Name=Prompt Viewer
 Icon=applications-science
-Description=Displays text prompts that are embedded within Stable Diffusion images.
+Description=Displays text prompts that are embedded within images from AI image generation applications.
 Authors=Martin Rizzo
-Copyright=Copyright © 2023 Martin Rizzo
-Website=https://github.com/martin-rizzo/SDPromptViewer
+Copyright=Copyright © 2023-2026 Martin Rizzo
+Website=https://github.com/martin-rizzo/EOG-PromptViewerPlugin

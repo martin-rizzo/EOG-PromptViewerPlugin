@@ -51,12 +51,12 @@
  *
  * An enumeration that specifies the type of style to create.
  */
-typedef enum _THEME_STYLE_TYPE THEME_STYLE_TYPE;
-enum         _THEME_STYLE_TYPE {
+typedef enum {
     THEME_VISUAL_STYLE,
     THEME_BORDER_STYLE,
     THEME_ZOOM_STYLE
-};
+} THEME_STYLE_TYPE;
+
 
 /**
  * new_theme_style_provider - Creates a GtkStyleProvider based on type and ID.

@@ -1,28 +1,24 @@
-/build
-
-# Ignore all hidden files/folders in the root directory,
-# except for the specified files
+# Ignore all hidden files and directories in the root,
+# except for the explicitly listed ones (e.g: .gitignore)
 /.*
 !.gitignore
+!.gitmodules
+!.github/
 
 
-# Ignore any file or folder ending with a tilde (~)
+# Ignore files and directories ending with a tilde (~)
 *~
 *~.*
 *~/
 
 
-# Generated Files #
-/config.h
-/libsdprompt-viewer.so
+# Ignore generated files and directories
+/bin
+/build
 /org.gnome.eog.plugins.sdprompt-viewer.gschema.xml
-/sdprompt-viewer-plugin.o
-/sdprompt-viewer-preferences.o
-/sdprompt-viewer-resources.c
-/sdprompt-viewer-resources.o
-/sdprompt-viewer.plugin
 
 
-# Kate Swap Files #
+# Ignore all Kate swap files
+# (in case you still use Kate)
 .*.kate-swp
 .swp.*

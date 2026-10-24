@@ -37,8 +37,14 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gtk/gtk.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include <eog/eog-thumb-view.h>
 #include <eog/eog-window.h>
+#pragma GCC diagnostic pop
+
+
 #include <libpeas/peas-extension-base.h>
 #include <libpeas/peas-object-module.h>
 

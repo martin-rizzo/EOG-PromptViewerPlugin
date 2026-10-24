@@ -39,18 +39,21 @@
 #include <gtk/gtkcssprovider.h>
 #include <libpeas-gtk/peas-gtk-configurable.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include <eog/eog-debug.h>
 #include <eog/eog-thumb-view.h>
 #include <eog/eog-sidebar.h>
 #include <eog/eog-window.h>
 #include <eog/eog-window-activatable.h>
+#pragma GCC diagnostic pop
 
-#include "resources.h"
+#include "../resources.h"
 #include "themes/themes.h"
-#include "utils_png.h"
-#include "utils_jpgtx.h"
+//#include "utils_png.h"
+//#include "utils_jpgtx.h"
+//#include "utils_sdparams.h"
 #include "utils_widget.h"
-#include "utils_sdparams.h"
 #include "sdprompt-viewer-plugin.h"
 #include "sdprompt-viewer-preferences.h"
 
@@ -358,6 +361,7 @@ show_message( SDPromptViewerPlugin *plugin,
 static void
 show_image_generation_data( SDPromptViewerPlugin *plugin )
 {
+#if 0
     SDParameters parameters; const gchar *image_generation_data;
     GtkTextView *text_view; GtkTextBuffer *buffer; int i;
     GtkBuilder *b = plugin->page_builder;
@@ -432,6 +436,8 @@ show_image_generation_data( SDPromptViewerPlugin *plugin )
     show_widget(b, "inpaint_group"   , parameters.inpaint.has_info      );
     show_widget(b, "settings_group"  , parameters.settings.has_info     );
     
+#endif 
+
     if( plugin->force_visibility ) {
         if( plugin->sidebar ) {
             eog_sidebar_set_page( plugin->sidebar, plugin->page );
@@ -636,8 +642,12 @@ on_image_changed( EogThumbView *view, SDPromptViewerPlugin *plugin ) {
     file  = image ? eog_image_get_file( image ) : NULL;
     if( file ) {
         show_spinner( plugin );
+
+        /* on_png_text_chunk_loaded() */
+        /*
         load_png_text_chunk(file, "parameters", 
                             on_png_text_chunk_loaded, plugin, 0);
+        */
     }
     if( file  ) { g_object_unref(file ); }
     if( image ) { g_object_unref(image); }

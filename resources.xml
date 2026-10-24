@@ -3,15 +3,15 @@
   <gresource prefix="/dev/martin-rizzo/sdprompt-viewer">
     <file preprocess="xml-stripblanks" compressed="true" >sdprompt-viewer-preferences.ui</file>
     <file preprocess="xml-stripblanks"                   >sdprompt-viewer-plugin.ui</file>
-    <file>themes/vs_none.css</file>
-    <file>themes/vs_autumn_twilight.css</file>
-    <file>themes/vs_frosty_dawn.css</file>
-    <file>themes/bs_none.css</file>
-    <file>themes/bs_line.css</file>
-    <file>themes/bs_thick.css</file>
-    <file>themes/fs_xsmall.css</file>
-    <file>themes/fs_small.css</file>
-    <file>themes/fs_large.css</file>
-    <file>themes/fs_xlarge.css</file>
+    <file>src/themes/vs_none.css</file>
+    <file>src/themes/vs_autumn_twilight.css</file>
+    <file>src/themes/vs_frosty_dawn.css</file>
+    <file>src/themes/bs_none.css</file>
+    <file>src/themes/bs_line.css</file>
+    <file>src/themes/bs_thick.css</file>
+    <file>src/themes/fs_xsmall.css</file>
+    <file>src/themes/fs_small.css</file>
+    <file>src/themes/fs_large.css</file>
+    <file>src/themes/fs_xlarge.css</file>
   </gresource>
 </gresources>

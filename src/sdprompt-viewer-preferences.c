@@ -34,10 +34,10 @@
 #include "config.h"
 #include <gtk/gtk.h>
 #include <glib/gi18n-lib.h>
-#include <eog/eog-debug.h>
 #include <libpeas-gtk/peas-gtk-configurable.h>
+#include <eog/eog-debug.h>
 
-#include "resources.h"
+#include "../resources.h"
 #include "sdprompt-viewer-preferences.h"
 
 static void

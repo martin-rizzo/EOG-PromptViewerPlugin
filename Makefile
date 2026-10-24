@@ -30,118 +30,217 @@
 #     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-CC = gcc
-CFLAGS = -fPIC $(EXTRA_CFLAGS) $(GLIB_CFLAGS) $(GTK_CFLAGS) $(LIBPEAS_CFLAGS) $(EOG_CFLAGS)
-EXTRA_CFLAGS = -Wall
+# Default build type
+BUILD_TYPE ?= release
 
-# Dependencies (GLIB,GTK,LIBPEAS-GTK,EOG)
-GLIB_CFLAGS    := $(shell pkg-config --cflags glib-2.0)
-GTK_CFLAGS     := $(shell pkg-config --cflags gtk+-3.0)
-LIBPEAS_CFLAGS := $(shell pkg-config --cflags libpeas-gtk-1.0)
-EOG_CFLAGS     := $(shell pkg-config --cflags eog)
+# Definicion de colores ANSI
+RESET      := \033[0m
+MSGINFO    := \033[1;35m[PvPlugin] \033[1;36m
+MSGSUCCESS := \033[1;32m
 
-# Directories
-XDG_DATA_HOME ?= $(HOME)/.local/share
+
+#============================================================================
+# Directory Paths and Installation targets
+#============================================================================
+XDG_DATA_HOME   ?= $(HOME)/.local/share
 EOG_PLUGINS_DIR := $(XDG_DATA_HOME)/eog/plugins
 GIO_SCHEMAS_DIR := $(XDG_DATA_HOME)/glib-2.0/schemas
-PO_DIR          := po
+PODIR           := po
+SRCDIR          := src
+OBJDIR          := build/$(BUILD_TYPE)
+BINDIR          := bin
+ifeq ($(BUILD_TYPE),debug)
+    BINDIR := bin/debug
+endif
 
-# Define variables
-PROJECT_NAME := sdprompt-viewer
-GSCHEMA_NAME := org.gnome.eog.plugins.$(PROJECT_NAME)
+#============================================================================
+# External Dependencies & Sub-projects
+#============================================================================
+GLIB_CFLAGS     := $(shell pkg-config --cflags glib-2.0)
+GTK_CFLAGS      := $(shell pkg-config --cflags gtk+-3.0)
+LIBPEAS_CFLAGS  := $(shell pkg-config --cflags libpeas-gtk-1.0)
+EOG_CFLAGS      := $(shell pkg-config --cflags eog)
+
+# Sub-project: PromptExtractor
+PROMPTEXT_CFLAGS:= -I$(PROMPTEXT_DIR)/include
+PROMPTEXT_DIR   := external/PromptExtractor
+PROMPTEXT_LIB   := $(PROMPTEXT_DIR)/lib/libpromptex.a
+ifeq ($(BUILD_TYPE),debug)
+    PROMPTEXT_LIB := $(PROMPTEXT_DIR)/lib/libpromptexd.a
+endif
+
+
+#============================================================================
+# Compiler Options and Flags
+#============================================================================
+
+# Flags for automatic dependency generation (.d files)
+DEPFLAGS := -MMD -MP
+
+# Compiler and linker settings
+CC      := gcc
+CFLAGS  := -std=c99 -pedantic -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -fPIC \
+           -I$(OBJDIR) \
+           $(GLIB_CFLAGS) $(GTK_CFLAGS) $(LIBPEAS_CFLAGS) $(EOG_CFLAGS) $(PROMPTEXT_CFLAGS) \
+           $(DEPFLAGS) $(EXTRA_CFLAGS)
+LDFLAGS :=
+
+# Build type specific flags
+ifeq ($(BUILD_TYPE),debug)
+    CFLAGS  += -g -O0 -DDEBUG
+    LDFLAGS += 
+else
+    CFLAGS  += -Os -s -ffunction-sections -fdata-sections -DNDEBUG
+    LDFLAGS += -Wl,--gc-sections
+endif
+
+#============================================================================
+# Final Target Names & Configuration
+#============================================================================
+PROJECT_NAME    := prompt-viewer
+GSCHEMA_NAME    := org.gnome.eog.plugins.$(PROJECT_NAME)
 GETTEXT_PACKAGE := $(shell echo $(PROJECT_NAME) | tr '[:lower:]' '[:upper:]')
 
-GSCHEMA_INPUT := system/sdprompt-viewer.gschema.xml.in
-PLUGIN_INPUT  := system/sdprompt-viewer.plugin.desktop.in
-CONFIG_H      := config.h
-RESOURCES_C   := $(PROJECT_NAME)-resources.c
+GSCHEMA_INPUT   := system/sdprompt-viewer.gschema.xml.in
+PLUGIN_INPUT    := system/sdprompt-viewer.plugin.desktop.in
+CONFIG_H        := $(OBJDIR)/config.h
+RESOURCES_C     := $(OBJDIR)/$(PROJECT_NAME)-resources.c
+RESOURCES_XML   := resources.xml
 
-LIBRARY := lib$(PROJECT_NAME).so
-PLUGIN  := $(PROJECT_NAME).plugin
-GSCHEMA := $(GSCHEMA_NAME).gschema.xml
+PLUGIN_MODULE   := $(BINDIR)/lib$(PROJECT_NAME).so
+PLUGIN_DESC     := $(BINDIR)/lib$(PROJECT_NAME).plugin
+GSCHEMA         := $(GSCHEMA_NAME).gschema.xml
 
-# Source files to compile
-SRCS  = sdprompt-viewer-plugin.c
-SRCS += sdprompt-viewer-preferences.c
-SRCS += $(RESOURCES_C)
+#============================================================================
+# Automatic Source and Object File Detection
+#============================================================================
 
-OBJS = $(SRCS:.c=.o)
+# List of main source files for the project
+SRCS_C := $(SRCDIR)/sdprompt-viewer-plugin.c \
+          $(SRCDIR)/sdprompt-viewer-preferences.c
 
+# Object files derived from the main source files.
+# The auto-generated 'resources.c' is also included,
+# which is already located in the $(OBJDIR) directory.
+OBJS_SRCS := $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCS_C))
+OBJ_RES   := $(RESOURCES_C:.c=.o)
+OBJS      := $(OBJS_SRCS) $(OBJ_RES)
 
+# Dependency files for automatic header inclusion tracking
+ALL_DEPS := $(OBJS:.o=.d)
 
-# List of targets
-.PHONY: all clean install remove run info
+#============================================================================
+# Compilation Rules (Main Rules)
+#============================================================================
 
-# Target to build all the components
-all: $(PLUGIN) $(LIBRARY) $(GSCHEMA) 
+# The default target builds everything
+all: $(PLUGIN_DESC) $(PLUGIN_MODULE) $(GSCHEMA)
 
-# Target to clean all the build artifacts
-clean:
-	rm -f $(OBJS) $(PLUGIN) $(LIBRARY) $(GSCHEMA) $(RESOURCES_C) $(CONFIG_H)
+# Rule to compile the sub-project invoking its own Makefile
+$(PROMPTEXT_LIB):
+	@echo -e "$(MSGINFO)Building sub-project PromptExtractor ($(BUILD_TYPE))$(RESET)"
+	$(MAKE) -C $(PROMPTEXT_DIR) BUILD_TYPE=$(BUILD_TYPE) EXTRA_CFLAGS="-fPIC"
 
-# Target to install the plugin
-install: $(PLUGIN) $(LIBRARY) $(GSCHEMA)
-	install -D $(PLUGIN)  $(EOG_PLUGINS_DIR)/$(PLUGIN)
-	install -D $(LIBRARY) $(EOG_PLUGINS_DIR)/$(LIBRARY)
+#============================================================================
+# Intermediate and Auxiliary File Generation Rules
+#============================================================================
+
+# Generate "config.h" (automatically creates subdirectories)
+$(CONFIG_H):
+	@mkdir -p $(dir $@)
+	@echo -e "$(MSGINFO)Generating config.h$(RESET)"
+	printf "#define GETTEXT_PACKAGE \"$(GETTEXT_PACKAGE)\"\n" > $@
+
+# Generate resources source file
+$(RESOURCES_C): $(RESOURCES_XML)
+	@mkdir -p $(dir $@)
+	@echo -e "$(MSGINFO)Generating resources source file$(RESET)"
+	glib-compile-resources --target="$@" --generate-source $(RESOURCES_XML)
+
+# Generate shared library (.so)
+$(PLUGIN_MODULE): $(OBJS) $(PROMPTEXT_LIB)
+	@mkdir -p $(dir $@)
+	@echo -e "$(MSGINFO)Linking shared library: $@ ($(BUILD_TYPE))$(RESET)"
+	$(CC) -shared $(LDFLAGS) -o $@ $(OBJS) $(PROMPTEXT_LIB)
+	@echo -e "$(MSGINFO)Build successful! Library created at: $@$(RESET)"
+
+# Generate GSchema XML file
+$(GSCHEMA): $(GSCHEMA_INPUT)
+	@echo -e "$(MSGINFO)Generating gschema file...$(RESET)"
+	@sed -e 's/@GETTEXT_PACKAGE@/$(GETTEXT_PACKAGE)/g' $< > $@
+
+# Generate Plugin desktop file
+$(PLUGIN_DESC): $(PLUGIN_INPUT)
+	@mkdir -p $(dir $@)
+	@echo -e "$(MSGINFO)Generating plugin file...$(RESET)"
+	@msgfmt --desktop --keyword=Name --keyword=Description \
+	        --template $< -d $(PODIR) -o $@
+
+# Pattern rule to compile objects (automatically creates subdirectories)
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(CONFIG_H)
+	@mkdir -p $(dir $@)
+	@echo -e "$(MSGINFO)Compiling component: $< ($(BUILD_TYPE))$(RESET)"
+	$(CC) $(CFLAGS) -c $< -o $@
+
+#============================================================================
+# Dynamic Directory Creation
+#============================================================================
+$(SRCDIR):
+	@mkdir -p $@
+
+#============================================================================
+# Installation and System Integration
+#============================================================================
+install: $(PLUGIN_DESC) $(PLUGIN_MODULE) $(GSCHEMA)
+	install -D $(PLUGIN_DESC)  $(EOG_PLUGINS_DIR)/$(PLUGIN_DESC)
+	install -D $(PLUGIN_MODULE) $(EOG_PLUGINS_DIR)/$(PLUGIN_MODULE)
 	install -D $(GSCHEMA) $(GIO_SCHEMAS_DIR)/$(GSCHEMA)
 	glib-compile-schemas $(GIO_SCHEMAS_DIR)
 
-# Target to uninstall the plugin
 remove:
-	rm -f "$(EOG_PLUGINS_DIR)/$(LIBRARY)"
-	rm -f "$(EOG_PLUGINS_DIR)/$(PLUGIN)"
+	rm -f "$(EOG_PLUGINS_DIR)/$(PLUGIN_MODULE)"
+	rm -f "$(EOG_PLUGINS_DIR)/$(PLUGIN_DESC)"
 	rm -f "$(GIO_SCHEMAS_DIR)/$(GSCHEMA)"
 	glib-compile-schemas "$(GIO_SCHEMAS_DIR)"
 
-# Target to execute EOG
 run:
 	EOG_DEBUG_PLUGINS=true GOBJECT_DEBUG=instance-count eog
 
-# Target to displays internal operational info of the Makefile
 info:
 	@echo "Makefile for building and installing the EOG plugin."
+	@echo "  BUILD_TYPE      = $(BUILD_TYPE)"
 	@echo "  EOG_PLUGINS_DIR = $(EOG_PLUGINS_DIR)"
 	@echo "  GIO_SCHEMAS_DIR = $(GIO_SCHEMAS_DIR)"
+	@echo "  RESOURCES_C     = $(RESOURCES_C)"
+	@echo "  ALL_DEPS        = $(ALL_DEPS)"
+#	@echo "  CFLAGS          = $(CFLAGS)"
 
+#============================================================================
+# Project Cleanup
+#============================================================================
+clean:
+	@echo -e "$(MSGINFO)Cleaning up all compilation files...$(RESET)"
+	rm -rf build $(BINDIR) $(GSCHEMA) $(CONFIG_H) 
+	$(MAKE) -C $(PROMPTEXT_DIR) clean
+	@echo -e "$(MSGINFO)Cleanup completed.$(RESET)"
 
-#-------------------------------------------------------------------
-# Generate ".o" files from C source code
-#
-%.o: %.c $(CONFIG_H) $(RESOURCES_C)
-	$(CC) $(CFLAGS) -c $< -o $@
+# Specific targets for debug and release builds
+debug:
+	@$(MAKE) all BUILD_TYPE=debug
 
-#-------------------------------------------------------------------
-# Generate "config.h" (intermediate file)
-#
-$(CONFIG_H):
-	printf "#define GETTEXT_PACKAGE \"$(GETTEXT_PACKAGE)\"\n" > $@
+release:
+	@$(MAKE) all BUILD_TYPE=release
 
-#-------------------------------------------------------------------
-# Generate "*-resources.c" (intermediate file)
-#
-$(RESOURCES_C): resources.xml
-	glib-compile-resources --target="$@" --generate-source \
-		resources.xml
+# Prevents conflicts if files named like targets exist
+.PHONY: all clean install remove run info debug release $(PROMPTEXT_LIB)
 
-#-------------------------------------------------------------------
-# Generate "lib*.so"
-#
-$(LIBRARY): $(OBJS)
-	$(CC) -shared -o $@ $^
+#============================================================================
+# Include Dependencies (crucial for .h changes)
+#============================================================================
 
-#-------------------------------------------------------------------
-# Generate "*-gschema.xml"
-#
-$(GSCHEMA): $(GSCHEMA_INPUT)
-	@echo "Generating gschema file..."
-	@sed -e 's/@GETTEXT_PACKAGE@/$(GETTEXT_PACKAGE)/g' $< > $@
+# Listado de targets que NO necesitan cargar dependencias (.d)
+NODEPS_TARGETS := clean remove info
 
-#-------------------------------------------------------------------
-# Generate "*.plugin"
-#
-$(PLUGIN): $(PLUGIN_INPUT)
-	@echo "Generating plugin file..."
-	@msgfmt --desktop --keyword=Name --keyword=Description \
-	        --template $< -d $(PO_DIR) -o $@
-
-
+ifeq ($(filter $(NODEPS_TARGETS),$(MAKECMDGOALS)),)
+-include $(ALL_DEPS)
+endif
