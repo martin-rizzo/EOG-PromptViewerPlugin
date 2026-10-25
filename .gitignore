@@ -15,7 +15,8 @@
 # Ignore generated files and directories
 /bin
 /build
-/org.gnome.eog.plugins.sdprompt-viewer.gschema.xml
+/compile_commands.json
+/org.gnome.eog.plugins.*.xml
 
 
 # Ignore all Kate swap files

@@ -31,9 +31,6 @@
      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
-
-#include "config.h"
-
 #include <glib/gi18n-lib.h>
 #include <gtk/gtk.h>
 #include <gtk/gtkcssprovider.h>

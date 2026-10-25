@@ -35,9 +35,16 @@ BUILD_TYPE ?= release
 
 # Definicion de colores ANSI
 RESET      := \033[0m
-MSGINFO    := \033[1;35m[PvPlugin] \033[1;36m
+MSGINFO    := \033[1;32m[PvP-INFO] \033[1;36m
+MSGERROR   := \033[1;31m[PvP-ERR] \033[1;33m
 MSGSUCCESS := \033[1;32m
 
+#============================================================================
+# ???
+#============================================================================
+PROJECT_NAME    := prompt-viewer
+GSCHEMA_NAME    := org.gnome.eog.plugins.$(PROJECT_NAME)
+GETTEXT_PACKAGE := $(shell echo $(PROJECT_NAME) | tr '[:lower:]' '[:upper:]')
 
 #============================================================================
 # Directory Paths and Installation targets
@@ -80,7 +87,7 @@ DEPFLAGS := -MMD -MP
 # Compiler and linker settings
 CC      := gcc
 CFLAGS  := -std=c99 -pedantic -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -fPIC \
-           -I$(OBJDIR) \
+           -DGETTEXT_PACKAGE='"$(GETTEXT_PACKAGE)"' \
            $(GLIB_CFLAGS) $(GTK_CFLAGS) $(LIBPEAS_CFLAGS) $(EOG_CFLAGS) $(PROMPTEXT_CFLAGS) \
            $(DEPFLAGS) $(EXTRA_CFLAGS)
 LDFLAGS :=
@@ -97,19 +104,14 @@ endif
 #============================================================================
 # Final Target Names & Configuration
 #============================================================================
-PROJECT_NAME    := prompt-viewer
-GSCHEMA_NAME    := org.gnome.eog.plugins.$(PROJECT_NAME)
-GETTEXT_PACKAGE := $(shell echo $(PROJECT_NAME) | tr '[:lower:]' '[:upper:]')
+GSCHEMA_INPUT := system/sdprompt-viewer.gschema.xml.in
+PLUGIN_INPUT  := system/sdprompt-viewer.plugin.desktop.in
+RESOURCES_C   := $(OBJDIR)/$(PROJECT_NAME)-resources.c
+RESOURCES_XML := resources.xml
 
-GSCHEMA_INPUT   := system/sdprompt-viewer.gschema.xml.in
-PLUGIN_INPUT    := system/sdprompt-viewer.plugin.desktop.in
-CONFIG_H        := $(OBJDIR)/config.h
-RESOURCES_C     := $(OBJDIR)/$(PROJECT_NAME)-resources.c
-RESOURCES_XML   := resources.xml
-
-PLUGIN_MODULE   := $(BINDIR)/lib$(PROJECT_NAME).so
-PLUGIN_DESC     := $(BINDIR)/lib$(PROJECT_NAME).plugin
-GSCHEMA         := $(GSCHEMA_NAME).gschema.xml
+PLUGIN_MODULE := $(BINDIR)/lib$(PROJECT_NAME).so
+PLUGIN_DESC   := $(BINDIR)/lib$(PROJECT_NAME).plugin
+GSCHEMA       := $(GSCHEMA_NAME).gschema.xml
 
 #============================================================================
 # Automatic Source and Object File Detection
@@ -145,12 +147,6 @@ $(PROMPTEXT_LIB):
 # Intermediate and Auxiliary File Generation Rules
 #============================================================================
 
-# Generate "config.h" (automatically creates subdirectories)
-$(CONFIG_H):
-	@mkdir -p $(dir $@)
-	@echo -e "$(MSGINFO)Generating config.h$(RESET)"
-	printf "#define GETTEXT_PACKAGE \"$(GETTEXT_PACKAGE)\"\n" > $@
-
 # Generate resources source file
 $(RESOURCES_C): $(RESOURCES_XML)
 	@mkdir -p $(dir $@)
@@ -177,7 +173,7 @@ $(PLUGIN_DESC): $(PLUGIN_INPUT)
 	        --template $< -d $(PODIR) -o $@
 
 # Pattern rule to compile objects (automatically creates subdirectories)
-$(OBJDIR)/%.o: $(SRCDIR)/%.c $(CONFIG_H)
+$(OBJDIR)/%.o: $(SRCDIR)/%.c 
 	@mkdir -p $(dir $@)
 	@echo -e "$(MSGINFO)Compiling component: $< ($(BUILD_TYPE))$(RESET)"
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -220,7 +216,7 @@ info:
 #============================================================================
 clean:
 	@echo -e "$(MSGINFO)Cleaning up all compilation files...$(RESET)"
-	rm -rf build $(BINDIR) $(GSCHEMA) $(CONFIG_H) 
+	rm -rf build $(BINDIR) $(GSCHEMA)
 	$(MAKE) -C $(PROMPTEXT_DIR) clean
 	@echo -e "$(MSGINFO)Cleanup completed.$(RESET)"
 
@@ -230,6 +226,17 @@ debug:
 
 release:
 	@$(MAKE) all BUILD_TYPE=release
+
+# Generates "compile_commands.json" automatically using bear
+compile_commands.json: clean
+	@echo -e "$(MSGINFO)Generating 'compile_commands.json'$(RESET)"
+	@if command -v bear >/dev/null 2>&1; then \
+		bear -- $(MAKE) debug; \
+		echo -e "$(MSGINFO)Compilation database generated successfully.$(RESET)"; \
+	else \
+		echo -e "$(MSGERROR)The command 'bear' is not installed. Run 'sudo dnf install bear' first.$(RESET)"; \
+		exit 1; \
+	fi
 
 # Prevents conflicts if files named like targets exist
 .PHONY: all clean install remove run info debug release $(PROMPTEXT_LIB)

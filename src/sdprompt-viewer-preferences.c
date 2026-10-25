@@ -31,7 +31,6 @@
      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
-#include "config.h"
 #include <gtk/gtk.h>
 #include <glib/gi18n-lib.h>
 #include <libpeas-gtk/peas-gtk-configurable.h>
