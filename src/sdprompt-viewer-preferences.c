@@ -136,7 +136,7 @@ static void create_gui( SDPromptViewerPreferences *preferences )
     gtk_builder_set_translation_domain( builder,
                                         GETTEXT_PACKAGE );
     gtk_builder_add_objects_from_resource( builder,
-                                           RES_PREFERENCES_UI,
+                                           UI_RESOURCE_DIR"/sdprompt-viewer-preferences.ui",
                                            objects_to_build,
                                            &error );
     if( error ) {

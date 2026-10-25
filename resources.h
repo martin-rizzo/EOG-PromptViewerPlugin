@@ -44,8 +44,7 @@
 #define     SETTINGS_FONT_SIZE              "font-size"
 
 /* FILE: resources.xml */
-#define RES_PREFIX   "/dev/martin-rizzo/sdprompt-viewer"
-#define RES_PREFERENCES_UI RES_PREFIX"/sdprompt-viewer-preferences.ui"
-#define RES_PLUGIN_UI      RES_PREFIX"/sdprompt-viewer-plugin.ui"
+#define RESOURCE_PREFIX  "/dev/martin-rizzo/sdprompt-viewer"
+#define THEMES_RES_DIR   RESOURCE_PREFIX"/src/themes"
+#define UI_RESOURCE_DIR  RESOURCE_PREFIX"/src"
 
-#define THEMES_RES_DIR RES_PREFIX"/themes"

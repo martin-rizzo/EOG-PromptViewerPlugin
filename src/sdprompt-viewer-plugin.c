@@ -756,7 +756,7 @@ on_activate( EogWindowActivatable *activatable )
     gtk_builder_set_translation_domain( plugin->page_builder,
                                         GETTEXT_PACKAGE );
     if( !gtk_builder_add_from_resource( plugin->page_builder,
-                                        RES_PLUGIN_UI,
+                                        UI_RESOURCE_DIR"/sdprompt-viewer-plugin.ui",
                                         &error) ) {
         g_warning( "Couldn't load UI resource: %s", error->message );
         g_error_free( error );

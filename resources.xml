@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/dev/martin-rizzo/sdprompt-viewer">
-    <file preprocess="xml-stripblanks" compressed="true" >sdprompt-viewer-preferences.ui</file>
-    <file preprocess="xml-stripblanks"                   >sdprompt-viewer-plugin.ui</file>
+    <file preprocess="xml-stripblanks" compressed="true" >src/sdprompt-viewer-preferences.ui</file>
+    <file preprocess="xml-stripblanks"                   >src/sdprompt-viewer-plugin.ui</file>
     <file>src/themes/vs_none.css</file>
     <file>src/themes/vs_autumn_twilight.css</file>
     <file>src/themes/vs_frosty_dawn.css</file>
