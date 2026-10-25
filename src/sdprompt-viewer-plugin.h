@@ -42,6 +42,7 @@
 #include <eog/eog-thumb-view.h>
 #include <eog/eog-sidebar.h>
 #include <eog/eog-window.h>
+#include <promptex/promptex.h>
 typedef struct SDPromptTheme_ SDPromptTheme;
 struct         SDPromptTheme_ {
     gint visual_style;
@@ -121,12 +122,12 @@ struct         _SDPromptViewerPlugin
     GtkBuilder    *page_builder;
     
     /* Properties */
-    gboolean      show_unknown_params;
-    gboolean      force_minimum_width;
-    gdouble       minimum_width;
-    gboolean      force_visibility;
-    gchar        *image_generation_data;
-    SDPromptTheme theme;
+    gboolean        show_unknown_params;
+    gboolean        force_minimum_width;
+    gdouble         minimum_width;
+    gboolean        force_visibility;
+    const PeParams* image_generation_params;
+    SDPromptTheme   theme;
 
     /* Signal IDs */
     gulong thumbview_sel_changed_signal_id;

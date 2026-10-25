@@ -45,11 +45,9 @@
 #include <eog/eog-window-activatable.h>
 #pragma GCC diagnostic pop
 
+#include <promptex/promptex.h>
 #include "../resources.h"
 #include "themes/themes.h"
-//#include "utils_png.h"
-//#include "utils_jpgtx.h"
-//#include "utils_sdparams.h"
 #include "utils_widget.h"
 #include "sdprompt-viewer-plugin.h"
 #include "sdprompt-viewer-preferences.h"
@@ -66,8 +64,8 @@ static void
 sdprompt_viewer_plugin_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
 static void
 sdprompt_viewer_plugin_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec);
-static const gchar *
-get_image_generation_data( SDPromptViewerPlugin *plugin );
+static const PeParams*
+get_image_generation_params( SDPromptViewerPlugin *plugin );
 
 enum {
     PROP_O,
@@ -356,8 +354,32 @@ show_message( SDPromptViewerPlugin *plugin,
 }
 
 static void
-show_image_generation_data( SDPromptViewerPlugin *plugin )
-{
+show_image_generation_params(SDPromptViewerPlugin *plugin
+){
+    GtkBuilder *b = plugin->page_builder;
+    if( !b ) { return; }
+
+    /* If no generation data is present, show a message and return */
+    const PeParams* params = get_image_generation_params( plugin );
+    if( !params )
+    {
+        show_message( plugin,
+                      "No generation parameters found in the image." );
+        return;
+    }
+
+    hide_all_widgets( b );
+    if (params->prompt.has_value) {
+        display_text(b, "prompt_text_view", params->prompt.value );
+    }
+
+
+    show_widget(b, "prompt_group", params->prompt.has_value);
+    show_widget(b, "buttons_group"   , TRUE                             );
+    show_widget(b, "parameters_group", TRUE                             );
+
+
+
 #if 0
     SDParameters parameters; const gchar *image_generation_data;
     GtkTextView *text_view; GtkTextBuffer *buffer; int i;
@@ -444,52 +466,46 @@ show_image_generation_data( SDPromptViewerPlugin *plugin )
 
 /*------------------------------ PROPERTIES -------------------------------*/
 
+
 /**
- * set_image_generation_data:
- * @plugin    : A pointer to an #SDPromptViewerPlugin object.
- * @data      : A string containing the image generation data.
- * @max_bytes : The maximum number of bytes in @data, or -1 to use the entire string.
+ * set_image_generation_params:
+ * @plugin: A pointer to an #SDPromptViewerPlugin instance.
+ * @params: A pointer to the #PeParams structure containing the image generation parameters, or %NULL.
  *
- * Sets the image generation data to the specified data string, up to a
- * maximum of @max_bytes bytes. If @max_bytes is -1, the entire data string
- * will be used.
- * 
- * If data is empty or NULL, the image generation data will be set to empty
- * and any previously allocated resources will be freed.
+ * Sets the image generation parameters for the given plugin.
+ *
+ * This function updates the plugin's internal state by storing a reference
+ * to the provided #PeParams structure. If a previous set of parameters
+ * was already assigned, it will be properly destroyed and freed before
+ * the new parameters are set.
+ *
+ * If @params is %NULL, the function clears the plugin's current parameters.
  */
 static void
-set_image_generation_data( SDPromptViewerPlugin *plugin,
-                           const gchar          *data,
-                           int                   max_bytes )
-{
-    if( plugin->image_generation_data ) {
-        g_free( plugin->image_generation_data );
-        plugin->image_generation_data = NULL;
-    }
-    if( max_bytes!=0 && data!=NULL && data[0]!='\0' ) {
-        if( max_bytes<0 ) { max_bytes = strlen( data ); }
-        plugin->image_generation_data = g_strndup( data, max_bytes );
+set_image_generation_params(SDPromptViewerPlugin* plugin,
+                            const PeParams*       params
+){
+    pe_destroy_params( plugin->image_generation_params );
+    plugin->image_generation_params = NULL;
+    if( params ) {
+        plugin->image_generation_params = params;
     }
 }
 
-/**
- * get_image_generation_data:
- * @plugin : A pointer to an #SDPromptViewerPlugin object.
- *
- * Returns: The image generation data, or an empty string if no data is set.
- */
-static const gchar *
-get_image_generation_data( SDPromptViewerPlugin *plugin )
-{
-    return plugin->image_generation_data ? plugin->image_generation_data : "";
+static const PeParams*
+get_image_generation_params(SDPromptViewerPlugin* plugin
+){
+    return plugin->image_generation_params;
 }
+
+
 
 /**
  * sdprompt_viewer_plugin_set_property:
- * @object  : A #GObject
- * @prop_id : The ID of the property to set
- * @value   : A #GValue containing the new value for the property
- * @pspec   : A #GParamSpec describing the property to set
+ * @object:  A #GObject
+ * @prop_id: The ID of the property to set
+ * @value:   A #GValue containing the new value for the property
+ * @pspec:   A #GParamSpec describing the property to set
  *
  * Sets the value of a property for the plugin.
  *
@@ -613,49 +629,88 @@ sdprompt_viewer_plugin_get_property( GObject    *object,
 
 /*-------------------------------- EVENTS ---------------------------------*/
 
+/**
+ * on_report:
+ * @type:    A #PEREPORT_TYPE indicating the type of report (e.g., warning, error, etc..).
+ * @message: A #PeUTF8 string containing the report message.
+ *
+ * Callback invoked by the PromptExtractor library to report events such as
+ * messages or errors found during extraction. This callback is primarily
+ * designed for CLI applications, printing the messages to the standard
+ * error stream.
+ */
 static void
-on_png_text_chunk_loaded(gchar *text, gpointer user_ptr, int user_int) {
+on_report(PEREPORT_TYPE type, const PeUTF8* message) {
+    switch( type ) {
+        case PEREPORT_WARNING:
+            fprintf(stderr, "WARNING: %s\n", message);
+            break;
+        case PEREPORT_ERROR:
+            fprintf(stderr, "ERROR: %s\n", message);
+            break;
+        default:
+            fprintf(stderr, "%s\n", message);
+            break;
+    }
+}
+
+/**
+ * on_generation_params_loaded:
+ * @params:   A pointer to the extracted generation parameters.
+ * @user_ptr: The plugin instance to update.
+ * @user_int: Additional user data (unused).
+ *
+ * Callback invoked when embedded generation params are loaded from an image.
+ * It stores the parameters in the plugin and updates the user interface.
+ */
+static void
+on_generation_params_loaded(const PeParams* params, gpointer user_ptr, int user_int) {
     SDPromptViewerPlugin *plugin = SDPROMPT_VIEWER_PLUGIN( user_ptr );
-    set_image_generation_data( plugin, text, -1 );
-    show_image_generation_data( plugin );
+    set_image_generation_params( plugin, params );
+    show_image_generation_params( plugin );
 }
 
-/*
+/**
+ * on_image_changed:
+ * @view:   A pointer to the #EogThumbView where the selection changed.
+ * @plugin: A pointer to the #SDPromptViewerPlugin instance.
+ *
+ * Callback invoked by Eye of GNOME (EOG) when the selected image in the
+ * thumbnail view changes. It retrieves the first selected image, extracts
+ * its file path, and loads the corresponding generation parameters using
+ * the PromptExtractor library. If no image is selected, it displays a
+ * "No image selected." message in the UI.
+ */
 static void
-on_jpg_text_file_loaded(gchar *text, gpointer user_ptr, int user_int) {
-    
-}
-*/
-
-static void
-on_image_changed( EogThumbView *view, SDPromptViewerPlugin *plugin ) {
-    GFile *file; EogImage *image;
+on_image_changed(EogThumbView*         view,
+                 SDPromptViewerPlugin* plugin
+){
     
     if( eog_thumb_view_get_n_selected( view ) == 0 ) {
         show_message( plugin, "No image selected." );
         return;
     }
-    image = eog_thumb_view_get_first_selected_image( view );
-    file  = image ? eog_image_get_file( image ) : NULL;
-    if( file ) {
-        show_spinner( plugin );
-
-        /* on_png_text_chunk_loaded() */
-        /*
-        load_png_text_chunk(file, "parameters", 
-                            on_png_text_chunk_loaded, plugin, 0);
-        */
+    
+    EogImage* image = eog_thumb_view_get_first_selected_image( view );
+    GFile*    gfile = image ? eog_image_get_file( image ) : NULL;
+    if( gfile!=NULL ) {
+        g_autofree gchar *path = g_file_get_path(gfile);
+        const PeParams* params = path ? pe_params_from_path(path, on_report) : NULL;
+        on_generation_params_loaded(params, plugin, 0);
     }
-    if( file  ) { g_object_unref(file ); }
+    if( gfile ) { g_object_unref(gfile); }
     if( image ) { g_object_unref(image); }
 }
 
 static void
 on_copy_data_clicked( GtkWidget *widget, gpointer data ) {
-    SDPromptViewerPlugin *plugin = SDPROMPT_VIEWER_PLUGIN( data );    
+    SDPromptViewerPlugin *plugin = SDPROMPT_VIEWER_PLUGIN( data );
+    (void)plugin;
+    /*
     gtk_clipboard_set_text(
         gtk_clipboard_get( GDK_SELECTION_CLIPBOARD ),
         get_image_generation_data( plugin ), -1 );
+    */
 }
 
 static void
@@ -769,7 +824,7 @@ on_deactivate( EogWindowActivatable *activatable )
     static const SDPromptTheme NULL_THEME = { -1, -1, -1 };
 
     /*-- restore sidebar width and release image generation data --*/
-    set_image_generation_data( plugin, NULL, 0 );
+    set_image_generation_params( plugin, NULL );
     apply_sidebar_minimum_width( plugin, -1 );
 
     /*-- remove the user interface from the sidebar --*/

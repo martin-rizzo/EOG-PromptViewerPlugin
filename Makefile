@@ -69,10 +69,11 @@ LIBPEAS_CFLAGS  := $(shell pkg-config --cflags libpeas-gtk-1.0)
 EOG_CFLAGS      := $(shell pkg-config --cflags eog)
 
 # Sub-project: PromptExtractor
-PROMPTEXT_CFLAGS:= -I$(PROMPTEXT_DIR)/include
-PROMPTEXT_DIR   := external/PromptExtractor
-PROMPTEXT_LIB   := $(PROMPTEXT_DIR)/lib/libpromptex.a
+PROMPTEXT_DIR    := external/PromptExtractor
+PROMPTEXT_LIB    := $(PROMPTEXT_DIR)/lib/libpromptex.a
+PROMPTEXT_CFLAGS := -I$(PROMPTEXT_DIR)/include
 ifeq ($(BUILD_TYPE),debug)
+    # le agrega el sufijo 'd' a la version debug
     PROMPTEXT_LIB := $(PROMPTEXT_DIR)/lib/libpromptexd.a
 endif
 
