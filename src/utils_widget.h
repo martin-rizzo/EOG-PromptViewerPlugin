@@ -34,33 +34,33 @@
 #include <gtk/gtk.h>
 
 /**
- * get_widget - Retrieves a widget with the specified name.
- * @builder:     a GtkBuilder object
- * @widget_name: the name of the widget to retrieve from the builder
+ * get_widget:
+ * @builder:     a #GtkBuilder object
+ * @widget_name: the name of the widget to retrieve
  *
- * Returns: a GtkWidget pointer to the requested widget.
- **/
+ * Retrieves a widget with the specified name from the given #GtkBuilder.
+ *
+ * Returns: (transfer none): a #GtkWidget pointer to the requested widget, or %NULL if not found.
+ */
 #define get_widget(builder, widget_name) \
     GTK_WIDGET( gtk_builder_get_object( builder, widget_name ) )
 
 /**
- * ensure_valid_utf8 - Converts a string to valid UTF-8 format.
- * @text:      a string of possibly invalid utf8 text.
- * @max_bytes: the max bytes to convert, or -1 to go until NUL.
+ * ensure_valid_utf8:
+ * @text:      a string that may contain invalid UTF-8 sequences
+ * @max_bytes: the maximum number of bytes to process, or -1 to process until the NUL terminator
  *
- * This function verifies whether the string is a valid UTF8 string.
- * If it is not valid, it attempts to convert the string to UTF8 using
- * the most appropriate method.
- * 
- * This is useful for ensuring that text is properly encoded before
- * being processed or displayed in a GTK-based application.
+ * Validates the given string and converts it to a valid UTF-8 format if necessary.
+ * If the string is already valid UTF-8, it returns a duplicate of the original string.
+ * If it is invalid, it attempts to convert it using the most appropriate encoding.
  *
- * Returns: a pointer to the string in valid UTF-8 format.
- *    The caller of the function takes ownership of the data,
- *    and is responsible for freeing it.
+ * Returns: (transfer full): a newly allocated string in valid UTF-8 format.
+ *   The caller takes ownership of the returned string and is responsible for freeing it.
  */
 static gchar *
-ensure_valid_utf8( const char *text, int max_bytes ) {
+ensure_valid_utf8(const char* text,
+                  int         max_bytes
+){
     gchar *utf8_text = NULL;
     if( !g_utf8_validate(text, max_bytes, NULL) ) {
         utf8_text = g_convert( text, max_bytes, "UTF-8", "ISO-8859-1",
@@ -70,8 +70,22 @@ ensure_valid_utf8( const char *text, int max_bytes ) {
            max_bytes>=0 ? g_strndup( text, max_bytes ) : g_strdup( text );
 }
 
+/**
+ * set_widget_text___:
+ * @widget:    a #GtkWidget
+ * @text:      a string of possibly invalid UTF-8 text
+ * @max_bytes: the maximum number of bytes in @text, or -1
+ * @depth:     the current recursion depth
+ *
+ * Internal recursive function that sets the text of a widget or its children.
+ * This function is not intended to be called directly, but rather via `set_widget_text`.
+ */
 static void
-set_widget_text_(GtkWidget *widget, const char *text, int max_bytes, int depth) {
+set_widget_text__(GtkWidget*  widget,
+                  const char* text,
+                  int         max_bytes,
+                  int         depth
+){
     GtkTextBuffer *buffer; gchar *utf8_text;
     
     if( GTK_IS_LABEL(widget) && depth==0 ) {
@@ -95,45 +109,51 @@ set_widget_text_(GtkWidget *widget, const char *text, int max_bytes, int depth) 
         children = gtk_container_get_children( GTK_CONTAINER(widget) );
         for( iter = children ; iter ; iter = g_list_next(iter) ) {
             child = GTK_WIDGET( iter->data );
-            set_widget_text_( child, text, max_bytes, depth+1 );
+            set_widget_text__( child, text, max_bytes, depth+1 );
         }
     }
 }
 
 /**
- * set_widget_text - Sets the text of a widget.
- * @widget:    The widget to set the text of.
- * @text:      A str of possibly invalid utf8 text to set as the widget's text.
- * @max_bytes: The maximum number of bytes in @text, or -1 to go until NUL.
+ * set_widget_text:
+ * @widget:    a #GtkWidget
+ * @text:      a string of possibly invalid UTF-8 text to set as the widget's text
+ * @max_bytes: the maximum number of bytes in @text, or -1 to process until the NUL terminator
  *
- * This function sets the text of the specified widget to the provided @text.
- * If @max_bytes is -1, the text is assumed to be NUL-terminated. If the
- * provided text contains invalid UTF-8 sequences, it will be automatically
- * converted to a valid UTF-8 string using the most appropriate method.
+ * Sets the text of the specified widget to @text. If @max_bytes is -1, the
+ * text is assumed to be NUL-terminated. If the provided text contains invalid
+ * UTF-8 sequences, it will be automatically converted to a valid UTF-8 string
+ * using the most appropriate method.
+ *
+ * This function handles various widget types (labels, entries, text views) and
+ * recursively applies the text to child widgets if the widget is a container.
  */
 static void
-set_widget_text(GtkWidget *widget, const char *text, int max_bytes) {
-    set_widget_text_( widget, text, max_bytes, 0 );
+set_widget_text(GtkWidget*  widget,
+                const char* text,
+                int         max_bytes
+){
+    set_widget_text__( widget, text, max_bytes, 0 );
 }
 
 /*---------------------------- DISPLAYING TEXT ----------------------------*/
 
 /**
- * display_text - Sets text of specified widget retrieved from GtkBuilder.
- * @builder:     A pointer to the GtkBuilder object that contains the widget.
+ * display_text:
+ * @builder:     A pointer to the #GtkBuilder object that contains the widget.
  * @widget_name: The name of the widget to set the text of.
  * @text:        A string to set as the widget's text.
- * 
+ *
  * Sets the text of the specified widget to the provided @text. If @text is
- * NULL, an empty string is used instead. If the text contains invalid UTF-8
+ * %NULL, an empty string is used instead. If the text contains invalid UTF-8
  * sequences, it will be automatically converted to a valid UTF-8 string
  * using the most appropriate method.
  */
 static void
-display_text( GtkBuilder  *builder,
-              const gchar *widget_name,
-              const gchar *text )
-{
+display_text(GtkBuilder*  builder,
+             const gchar* widget_name,
+             const gchar* text
+){
     GtkWidget *widget;
     widget = builder ? get_widget( builder, widget_name ) : NULL;
     if( widget ) {
@@ -142,21 +162,24 @@ display_text( GtkBuilder  *builder,
 }
 
 /**
- * display_text_box - Sets text of a widget, optionally showing or hiding it.
- * @builder:     A pointer to the GtkBuilder object that contains the widget.
- * @widget_name: The name of the widget to set the text of.
- * @text:        A string to set as the widget's text.
+ * display_text_box:
+ * @builder:     a #GtkBuilder object containing the widget
+ * @widget_name: the name of the widget to update
+ * @text:        the text to set, or %NULL to hide the widget
  *
- * Sets the text of the specified widget to the provided @text. The widget is
- * shown or hidden based on whether @text is NULL or not. If the text contains
- * invalid UTF-8 sequences, it will be automatically converted to a valid
- * UTF-8 string using the most appropriate method.
+ * Sets the text of the specified widget to @text. If @text is %NULL, the
+ * widget is hidden; otherwise, it is shown. If the provided text contains
+ * invalid UTF-8 sequences, they are automatically converted to a valid
+ * UTF-8 string.
+ * 
+ * This function handles various widget types (labels, entries, text views) and
+ * recursively applies the text to child widgets if the widget is a box or container.
  */
 static void
-display_text_box( GtkBuilder  *builder,
-                  const gchar *widget_name,
-                  const gchar *text )
-{
+display_text_box(GtkBuilder*  builder,
+                 const gchar* widget_name,
+                 const gchar* text
+){
     GtkWidget *widget_box;
     widget_box = builder ? get_widget( builder, widget_name ) : NULL;
     if( widget_box ) {
@@ -167,30 +190,26 @@ display_text_box( GtkBuilder  *builder,
 }
 
 /**
- * display_text_or_float - Sets text of widget to string or float.
- * @builder:      A pointer to the GtkBuilder object that contains the widget.
- * @widget_name:  The name of the widget to set the text of.
- * @text:         A string to set as the widget's text.
- * @float_value:  The floating-point value to display if @text is NULL.
- * @num_decimals: The number of decimal places to display for the float value.
+ * display_text_or_float:
+ * @builder:      a #GtkBuilder object containing the widget
+ * @widget_name:  the name of the widget to update
+ * @text:         a string to set as the widget's text, or %NULL
+ * @float_value:  the floating-point value to display if @text is %NULL
+ * @num_decimals: the number of decimal places to display for the float value
  *
- * This function sets the text of the specified widget to either the @text 
- * string or a string representation of the @float_value.
- * If the @text argument is not NULL, it will be used as the widget's text.
- * If the @text argument is NULL, a string representation of the @float_value
- * will be used instead.
- * The @num_decimals argument determines the number of decimal places to
- * include in the string representation of the @float_value.
- * If the @text argument contains invalid UTF-8 sequences, they will be
- * converted to a valid UTF-8 string using the most appropriate method.
- */ 
+ * Sets the text of the specified widget to @text if provided, or formats
+ * @float_value as a string otherwise. When @text is %NULL, @float_value is
+ * converted to a string with the specified number of decimal places.
+ * Invalid UTF-8 sequences in @text are automatically converted to valid
+ * UTF-8.
+ */
 static void
-display_text_or_float( GtkBuilder  *builder,
-                       const gchar *widget_name,
-                       const gchar *text,
-                       float        float_value,
-                       int          num_decimals )
-{
+display_text_or_float(GtkBuilder*  builder,
+                      const gchar* widget_name,
+                      const gchar* text,
+                      float        float_value,
+                      int          num_decimals
+){
     if( text ) {
         display_text( builder, widget_name, text );
     } else {
