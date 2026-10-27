@@ -43,6 +43,7 @@
 #include <eog/eog-sidebar.h>
 #include <eog/eog-window.h>
 #include <promptex/promptex.h>
+#include "prompt-viewer-ui.h"
 typedef struct SDPromptTheme_ SDPromptTheme;
 struct         SDPromptTheme_ {
     gint visual_style;
@@ -118,6 +119,10 @@ struct         _SDPromptViewerPlugin
     EogWindow     *window;
     EogThumbView  *thumbview;
     EogSidebar    *sidebar;
+
+    // Widgets
+    PromptViewerUI    ui;
+
     GtkWidget     *page;
     GtkBuilder    *page_builder;
     

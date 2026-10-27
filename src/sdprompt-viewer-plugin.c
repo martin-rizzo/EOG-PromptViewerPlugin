@@ -46,6 +46,7 @@
 #pragma GCC diagnostic pop
 
 #include <promptex/promptex.h>
+#include "prompt-viewer-ui.h"
 #include "../resources.h"
 #include "themes/themes.h"
 #include "utils_widget.h"
@@ -304,6 +305,7 @@ apply_visual_style( SDPromptViewerPlugin *plugin,
 
 /*-------------------- CONTROLLING THE USER INTERFACE ---------------------*/
 
+#if 0
 static void
 hide_all_widgets( GtkBuilder  *builder )
 {
@@ -318,39 +320,6 @@ hide_all_widgets( GtkBuilder  *builder )
             gtk_widget_hide( child );
         }
     }
-}
-
-static void
-show_widget( GtkBuilder  *builder, 
-             const gchar *widget_name,
-             gboolean     show )
-{
-    GtkWidget *widget;
-    widget = builder ? get_widget( builder, widget_name ) : NULL;
-    if( widget ) {
-        if( show ) { gtk_widget_show( widget ); }
-        else       { gtk_widget_hide( widget ); }
-    }
-}
-
-static void
-show_spinner( SDPromptViewerPlugin *plugin )
-{
-    GtkBuilder *builder = plugin->page_builder;
-    if( !builder ) { return; }
-    hide_all_widgets( builder );
-    show_widget( builder, "loading_group", TRUE );
-}
-
-static void
-show_message( SDPromptViewerPlugin *plugin,
-              const gchar          *message )
-{
-    GtkBuilder *builder = plugin->page_builder;
-    if( !builder ) { return; }
-    hide_all_widgets( builder );
-    display_text( builder , "message_label", message );
-    show_widget( builder  , "message_group", TRUE    );
 }
 
 static void
@@ -463,6 +432,45 @@ show_image_generation_params(SDPromptViewerPlugin *plugin
         }
     }
 }
+
+static void
+show_message( SDPromptViewerPlugin *plugin,
+              const gchar          *message )
+{
+    GtkBuilder *builder = plugin->page_builder;
+    if( !builder ) { return; }
+    pvpui_hide_all_widgets(&plugin->ui);
+    //display_text( builder , "message_label", message );
+    //show_widget( builder  , "message_group", TRUE    );
+}
+
+#endif
+
+static void
+show_widget( GtkBuilder  *builder, 
+             const gchar *widget_name,
+             gboolean     show )
+{
+    GtkWidget *widget;
+    widget = builder ? get_widget( builder, widget_name ) : NULL;
+    if( widget ) {
+        if( show ) { gtk_widget_show( widget ); }
+        else       { gtk_widget_hide( widget ); }
+    }
+}
+
+static void
+show_spinner( SDPromptViewerPlugin *plugin )
+{
+    GtkBuilder *builder = plugin->page_builder;
+    if( !builder ) { return; }
+
+    pvpui_hide_all_widgets(&plugin->ui);
+    //hide_all_widgets( builder );
+    //show_widget( builder, "loading_group", TRUE );
+}
+
+
 
 /*------------------------------ PROPERTIES -------------------------------*/
 
@@ -667,7 +675,13 @@ static void
 on_generation_params_loaded(const PeParams* params, gpointer user_ptr, int user_int) {
     SDPromptViewerPlugin *plugin = SDPROMPT_VIEWER_PLUGIN( user_ptr );
     set_image_generation_params( plugin, params );
-    show_image_generation_params( plugin );
+    pvpui_show_params(&plugin->ui, plugin->image_generation_params);
+
+    if( plugin->force_visibility ) {
+        if( plugin->sidebar ) {
+            eog_sidebar_set_page( plugin->sidebar, plugin->page );
+        }
+    }
 }
 
 /**
@@ -687,7 +701,7 @@ on_image_changed(EogThumbView*         view,
 ){
     
     if( eog_thumb_view_get_n_selected( view ) == 0 ) {
-        show_message( plugin, "No image selected." );
+        pvpui_show_message(&plugin->ui, "No image selected.");
         return;
     }
     
@@ -764,12 +778,23 @@ on_activate( EogWindowActivatable *activatable )
     
     plugin->thumbview = EOG_THUMB_VIEW( eog_window_get_thumb_view( window ) );
     plugin->sidebar   = EOG_SIDEBAR( eog_window_get_sidebar( window ) );
+
+    plugin->ui   = pvp_create_prompt_viewer_ui();
+    plugin->page = plugin->ui.box;
+
+    //plugin->page = GTK_WIDGET(plugin->ui_prompt.box);
+
+    /*-- add the user interface to the sidebar */
+    eog_sidebar_add_page( plugin->sidebar, _("Prompt Viewer Plugin"), plugin->page );
+    gtk_widget_show_all( plugin->page );
+
+#if 0
     plugin->page      = get_widget( plugin->page_builder, "viewport1" );
 
 
     /*-- add the user interface to the sidebar */
     eog_sidebar_add_page( plugin->sidebar,
-                          _("Prompt Viewer Plugin for EOG"),
+                          _("Prompt Viewer Plugin"),
                           plugin->page );
     gtk_widget_show_all( plugin->page );
 
@@ -789,6 +814,8 @@ on_activate( EogWindowActivatable *activatable )
     g_settings_bind( settings, SETTINGS_FONT_SIZE,
                      plugin, "font-size", G_SETTINGS_BIND_GET);
     
+#endif
+
     /*-- binding events using signals --*/
     plugin->thumbview_sel_changed_signal_id =
         g_signal_connect( G_OBJECT( plugin->thumbview ),
@@ -796,17 +823,18 @@ on_activate( EogWindowActivatable *activatable )
                           G_CALLBACK( on_image_changed ),
                           plugin );
 
-    plugin->preferences_button_signal_id =
-        g_signal_connect( get_widget( plugin->page_builder, "preferences_button" ),
-                          "clicked",
-                          G_CALLBACK( on_preferences_clicked ),
-                          plugin );
+    // plugin->preferences_button_signal_id =
+    //     g_signal_connect( get_widget( plugin->page_builder, "preferences_button" ),
+    //                       "clicked",
+    //                       G_CALLBACK( on_preferences_clicked ),
+    //                       plugin );
         
-    plugin->copy_button_signal_id =
-        g_signal_connect( get_widget( plugin->page_builder, "copy_button" ),
-                          "clicked",
-                          G_CALLBACK( on_copy_data_clicked ),
-                          plugin );
+    // plugin->copy_button_signal_id =
+    //     g_signal_connect( get_widget( plugin->page_builder, "copy_button" ),
+    //                       "clicked",
+    //                       G_CALLBACK( on_copy_data_clicked ),
+    //                       plugin );
+
 
     /*-- force update image information for first time --*/
     on_image_changed(plugin->thumbview, plugin);
