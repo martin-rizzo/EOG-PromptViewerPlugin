@@ -50,8 +50,9 @@ GtkWidget* pvpui_create_pane_array(GtkWidget* widgets[], int count) {
     
     for (int i = count - 2; i >= 0; i--) {
         GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
-        gtk_paned_pack1(GTK_PANED(paned), widgets[i], TRUE, FALSE);
-        gtk_paned_pack2(GTK_PANED(paned), root, TRUE, FALSE);
+        gtk_paned_set_wide_handle(GTK_PANED(paned), TRUE);
+        gtk_paned_pack1(GTK_PANED(paned), widgets[i], FALSE, FALSE);
+        gtk_paned_pack2(GTK_PANED(paned), root      , TRUE , TRUE );
         root = paned;
     }
     return root;
@@ -387,7 +388,7 @@ DataWidgets pvpui_create_data_widgets(void) {
  * @return A fully initialized PromptViewerUI structure containing all widgets.
  */
 PromptViewerUI pvp_create_prompt_viewer_ui(void) {
-    PromptViewerUI  ui;
+    PromptViewerUI ui;
 
     // the 4 widget groups of the Prompt Viewer UI
     ui.toolbar = pvpui_create_toolbar_widgets();
@@ -395,13 +396,26 @@ PromptViewerUI pvp_create_prompt_viewer_ui(void) {
     ui.loading = pvpui_create_loading_widgets();
     ui.data    = pvpui_create_data_widgets();
 
-    // connect the 4 groups using a vertical box
+    // crear un box interno para los elementos que irán dentro del scroll
+    GtkWidget *scroll_content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_visible(scroll_content_box, TRUE);
+    gtk_box_pack_start(GTK_BOX(scroll_content_box), ui.message.box, FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(scroll_content_box), ui.loading.box, FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(scroll_content_box), ui.data.box   , TRUE , TRUE, 0);
+
+    // crear el contenedor con scroll vertical y añadirle el contenido
+    GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
+    gtk_widget_set_visible(scrolled_window, TRUE);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
+                                   GTK_POLICY_NEVER, 
+                                   GTK_POLICY_ALWAYS);
+    gtk_container_add(GTK_CONTAINER(scrolled_window), scroll_content_box);
+
+    // crear el VBox principal con solo los 2 componentes principales
     ui.box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_widget_set_visible(ui.box, TRUE);
-    gtk_box_pack_start(GTK_BOX(ui.box), ui.toolbar.box, FALSE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(ui.box), ui.message.box, FALSE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(ui.box), ui.loading.box, FALSE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(ui.box), ui.data.box, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(ui.box), ui.toolbar.box, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(ui.box), scrolled_window, TRUE, TRUE, 0);
 
     return ui;
 }
