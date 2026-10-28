@@ -14,6 +14,7 @@
 #include <gtk/gtk.h>
 #include <promptex/promptex.h>
 #include "prompt-viewer-ui.h"
+#include "prompt-viewer-ui.resizer.h"
 
 
 /**
@@ -22,7 +23,7 @@
  * @param color_css  The CSS color string (e.g., "red", "#ff0000", "rgba(0,255,0,0.5)").
  */
 static void
-pvpui_apply_color(GtkWidget *widget, const gchar *color_css) {
+pvui_apply_debug_color(GtkWidget *widget, const gchar *color_css) {
     if (!widget || !color_css) { return; };
 
     // create a CSS style provider
@@ -42,140 +43,153 @@ pvpui_apply_color(GtkWidget *widget, const gchar *color_css) {
     g_object_unref(provider);
 }
 
-
-
-GtkWidget* pvpui_create_pane_array(GtkWidget* widgets[], int count) {
-    if (count < 1) return NULL;
-    GtkWidget *root = widgets[count - 1];
-    
-    for (int i = count - 2; i >= 0; i--) {
-        GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
-        gtk_paned_set_wide_handle(GTK_PANED(paned), TRUE);
-        gtk_paned_pack1(GTK_PANED(paned), widgets[i], FALSE, FALSE);
-        gtk_paned_pack2(GTK_PANED(paned), root      , TRUE , TRUE );
-        root = paned;
-    }
-    return root;
-}
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /**
- * Creates a vertical structure of 4 nested panels using GtkPaned.
- * The widgets passed as arguments should already be wrapped in their 
- * respective GtkScrolledWindow if scrolling is required.
+ * A structure representing a label and button pair within a container.
  */
-GtkWidget* pvpui_create_pane4(GtkWidget* top,
-                              GtkWidget* middle1,
-                              GtkWidget* middle2,
-                              GtkWidget* bottom)
-{
-    GtkWidget* widgets[] = { top, middle1, middle2, bottom };
-    return pvpui_create_pane_array(widgets, 4);
-}
+typedef struct LabelAndButtonWidgets {
+    GtkWidget* box;      ///< The container.
+    GtkWidget* label;    ///< The GtkLabel widget.
+    GtkWidget* button;   ///< The GtkButton widget.
+} LabelAndButtonWidgets;
 
-
-LabelButtonWidgets pvpui_create_label_button(const gchar* label_text,
-                                             const gchar* button_text
+/**
+ * Creates a horizontal box containing a label and a button.
+ *
+ * @param label_text  The text for the label.
+ * @param button_text The text for the button.
+ * @return A `LabelAndButtonWidgets` structure containing the container box,
+ *         the label, and the button.
+ */
+static LabelAndButtonWidgets
+pvui_create_label_and_button(const gchar* label_text,
+                             const gchar* button_text
 ){
     // create the main container (horizontal GtkBox)
     GtkWidget* box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
     gtk_widget_set_visible(box, TRUE);
     
-    // GtkLabel on the left
+    // `GtkLabel` on the left
     GtkWidget *label = gtk_label_new(label_text ? label_text : "Label");
     gtk_widget_set_visible(label, TRUE);
     gtk_box_pack_start(GTK_BOX(box), label, FALSE, TRUE, 0);
     
-    // GtkSeparator separating label and button
+    // `GtkSeparator` between label and button
     GtkWidget *expander = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_box_pack_start(GTK_BOX(box), expander, TRUE, FALSE, 0);
     
-    // GtkButton on the right
+    // `GtkButton` on the right
     GtkWidget *button = gtk_button_new_with_label(button_text ? button_text : "Button");
     gtk_widget_set_visible(button, TRUE);
     gtk_widget_set_can_focus(button, TRUE);
     gtk_box_pack_start(GTK_BOX(box), button, FALSE, TRUE, 0);
     
-    return (LabelButtonWidgets){
+    return (LabelAndButtonWidgets){
         .box    = box,
         .label  = label,
         .button = button
     };
 }
 
-struct TwoFieldsWidgets {
-    GtkWidget* box;     // The main container (horizontal GtkBox)
-    GtkWidget* label1;  // The GtkLabel with the field name
-    GtkWidget* field1;  // The GtkEntry with the field value
-    GtkWidget* label2;
-    GtkWidget* field2;
-};
-typedef struct TwoFieldsWidgets TwoFieldsWidgets;
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/**
+ * A structure representing two fields (each field being a label and entry pair).
+ */
+typedef struct TwoFieldsWidgets {
+    GtkWidget* box;     ///< The container.
+    GtkWidget* label1;  ///< The GtkLabel with the field name.
+    GtkWidget* entry1;  ///< The GtkEntry with the field value.
+    GtkWidget* label2;  ///< The GtkLabel with the second field name.
+    GtkWidget* entry2;  ///< The GtkEntry with the second field value.
+} TwoFieldsWidgets;
 
 
-TwoFieldsWidgets pvpui_create_two_fields_widgets(const gchar* label1_text,
-                                                 int          width1,
-                                                 const gchar* label2_text,
-                                                 int          width2
+/**
+ * Creates a horizontal box containing two fields.
+ *
+ * @param name1  The text for the first label.
+ * @param width1 The width in characters for the first entry (-1 for default).
+ * @param name2  The text for the second label.
+ * @param width2 The width in characters for the second entry (-1 for default).
+ * @return A `TwoFieldsWidgets` structure containing the container box,
+ *         the labels, and the entry fields.
+ */
+static TwoFieldsWidgets
+pvui_create_two_fields_widgets(const gchar* name1,
+                               int          width1,
+                               const gchar* name2,
+                               int          width2
 ){
     // create the main container (horizontal GtkBox)
-    GtkWidget* box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6); // 6px standard spacing
-    gtk_widget_set_visible(box, TRUE);
+    GtkWidget* hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6); // 6px standard spacing
+    gtk_widget_set_visible(hbox, TRUE);
 
     // expandable separator on the left to force right alignment
     GtkWidget* spacer = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_visible(spacer, TRUE);
-    gtk_box_pack_start(GTK_BOX(box), spacer, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), spacer, TRUE, TRUE, 0);
 
-    // first field and its label
-    GtkWidget* label1 = gtk_label_new(label1_text);
+    // first field
+    GtkWidget* label1 = gtk_label_new(name1);
     gtk_widget_set_visible(label1, TRUE);
-
-    GtkWidget* field1 = gtk_entry_new();
-    gtk_widget_set_visible(field1, TRUE);
+    GtkWidget* entry1 = gtk_entry_new();
+    gtk_widget_set_visible(entry1, TRUE);
     if (width1 >= 0) {
-        gtk_entry_set_width_chars(GTK_ENTRY(field1), width1);
+        gtk_entry_set_width_chars(GTK_ENTRY(entry1), width1);
     }
 
-    // second field and its label
-    GtkWidget* label2 = gtk_label_new(label2_text);
+    // second field
+    GtkWidget* label2 = gtk_label_new(name2);
     gtk_widget_set_visible(label2, TRUE);
-
-    GtkWidget* field2 = gtk_entry_new();
-    gtk_widget_set_visible(field2, TRUE);
+    GtkWidget* entry2 = gtk_entry_new();
+    gtk_widget_set_visible(entry2, TRUE);
     if (width2 >= 0) {
-        gtk_entry_set_width_chars(GTK_ENTRY(field2), width2);
+        gtk_entry_set_width_chars(GTK_ENTRY(entry2), width2);
     }
 
     // pack everything in order within the horizontal container
-    gtk_box_pack_start(GTK_BOX(box), label1, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(box), field1, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(box), label2, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(box), field2, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), label1, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), entry1, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), label2, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), entry2, FALSE, FALSE, 0);
 
     return (TwoFieldsWidgets){
-        .box    = box,
+        .box    = hbox,
         .label1 = label1,
-        .field1 = field1,
+        .entry1 = entry1,
         .label2 = label2,
-        .field2 = field2
+        .entry2 = entry2
     };
 }
 
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-TextAreaWidgets pvpui_create_text_area() {
+/**
+ * Creates a text area widget component for displaying prompts.
+ *
+ * Constructs a vertical box containing a header (label and copy button), a
+ * text view, and a resizer handle. The text view is set to word wrapping and
+ * is non-editable.
+ *
+ * @return A `TextAreaWidgets` structure containing the container box,
+ *         the header label, the copy button, and the text view widget.
+ */
+static TextAreaWidgets
+pvui_create_text_area(
+){
 
     // create the main container (GtkBox)
-    GtkWidget* box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_widget_set_visible(box, TRUE);
+    GtkWidget* vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_visible(vbox, TRUE);
 
     // top GtkSeparator
     GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_widget_set_visible(separator, TRUE);
-    gtk_box_pack_start(GTK_BOX(box), separator, FALSE, TRUE, 0);
 
     // header with label and button
-    LabelButtonWidgets label_button = pvpui_create_label_button("Prompt", "Copy");
-    gtk_box_pack_start(GTK_BOX(box), label_button.box, FALSE, TRUE, 0);
+    LabelAndButtonWidgets label_button = pvui_create_label_and_button("Prompt", "Copy");
 
     // container GtkFrame
     GtkWidget *frame = gtk_frame_new(NULL);
@@ -202,18 +216,24 @@ TextAreaWidgets pvpui_create_text_area() {
 
     // assemble the internal hierarchy
     gtk_container_add(GTK_CONTAINER(scrolled_window), prompt_text_view);
-    gtk_container_add(GTK_CONTAINER(frame), scrolled_window);
-    gtk_box_pack_start(GTK_BOX(box), frame, TRUE, TRUE, 0);
+    gtk_container_add(GTK_CONTAINER(frame)          , scrolled_window);
+
+    // crear un resizer que el usuario pueda arrastrar para cambiar el tamaño del vbox
+    GtkWidget* resizer = pvui_create_resizer(vbox, 30, 8*1024);
+
+    // empaquetar todo en secuencia dentro del vbox
+    gtk_box_pack_start(GTK_BOX(vbox), separator       , FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), label_button.box, FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), frame           , TRUE , TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), resizer         , FALSE, TRUE, 0);
 
     return (TextAreaWidgets){
-        .box         = box,
+        .box         = vbox,
         .label       = label_button.label,
         .copy_button = label_button.button,
         .text_view   = prompt_text_view
     };
 }
-
-
 
 /*======================== CREATING WIDGET GROUPS ========================*/
 
@@ -222,7 +242,7 @@ TextAreaWidgets pvpui_create_text_area() {
  * @return
  *     A `ToolBarWidgets` structure containing the toolbar box and its buttons.
  */
-ToolBarWidgets pvpui_create_toolbar_widgets(void) {
+ToolBarWidgets pvui_create_toolbar_widgets(void) {
 
     // create the main container (GtkToolbar)
     GtkWidget *toolbar = gtk_toolbar_new();
@@ -273,7 +293,7 @@ ToolBarWidgets pvpui_create_toolbar_widgets(void) {
  * @return
  *     A `MessageWidgets` structure containing the message box and label.
  */
-MessageWidgets pvpui_create_message_widgets(void) {
+MessageWidgets pvui_create_message_widgets(void) {
 
     // create the main container (vertical GtkBox)
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -299,7 +319,7 @@ MessageWidgets pvpui_create_message_widgets(void) {
  * @return
  *     A `LoadingWidgets` structure containing the loading box and spinner.
  */
-LoadingWidgets pvpui_create_loading_widgets(void) {
+LoadingWidgets pvui_create_loading_widgets(void) {
 
     // create the main container (vertical GtkBox)
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -326,7 +346,7 @@ LoadingWidgets pvpui_create_loading_widgets(void) {
  * @return
  *     A `ParametersWidgets` structure containing the parameters box and entry fields.
  */
-ParametersWidgets pvpui_create_parameters_widgets() {
+ParametersWidgets pvui_create_parameters_widgets() {
 
     // create the main container (vertical GtkBox)
     GtkWidget* box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -335,18 +355,23 @@ ParametersWidgets pvpui_create_parameters_widgets() {
     // the numbers represent the width in characters of the GtkEntry;
     // everything should be right-aligned, so the box should be an hbox
     // with an expandable spacer on the left
-    TwoFieldsWidgets sampler_steps = pvpui_create_two_fields_widgets("Sampler",-1, "Steps",4);
+    TwoFieldsWidgets sampler_steps = pvui_create_two_fields_widgets("Sampler",-1, "Steps",4);
     gtk_box_pack_start(GTK_BOX(box), sampler_steps.box, FALSE, TRUE, 0);
 
-    TwoFieldsWidgets cfg_width = pvpui_create_two_fields_widgets("CFG Scale",4,"Width",5);
+    TwoFieldsWidgets cfg_width = pvui_create_two_fields_widgets("CFG Scale",4,"Width",5);
     gtk_box_pack_start(GTK_BOX(box), cfg_width.box, FALSE, TRUE, 0);
+
+    TwoFieldsWidgets seed_height = pvui_create_two_fields_widgets("Seed",10,"Height",5);
+    gtk_box_pack_start(GTK_BOX(box), seed_height.box, FALSE, TRUE, 0);
 
     return (ParametersWidgets){
         .box           = box,
-        .sampler_field = sampler_steps.field1,
-        .steps_field   = sampler_steps.field2,
-        .cfg_field     = cfg_width.field1,
-        .width_field   = cfg_width.field2
+        .sampler_field = sampler_steps.entry1,
+        .steps_field   = sampler_steps.entry2,
+        .cfg_field     = cfg_width.entry1,
+        .width_field   = cfg_width.entry2,
+        .seed_field    = seed_height.entry1,
+        .height_field  = seed_height.entry2
     };
 }
 
@@ -356,19 +381,24 @@ ParametersWidgets pvpui_create_parameters_widgets() {
  * @return
  *     A `DataWidgets` structure containing the data box and all sub-widgets.
  */
-DataWidgets pvpui_create_data_widgets(void) {
+DataWidgets pvui_create_data_widgets(void) {
 
-    TextAreaWidgets   prompt          = pvpui_create_text_area();
-    TextAreaWidgets   negative_prompt = pvpui_create_text_area();
-    TextAreaWidgets   widlcard_prompt = pvpui_create_text_area();
-    ParametersWidgets parameters      = pvpui_create_parameters_widgets();
-    GtkWidget* box = pvpui_create_pane4(prompt.box, negative_prompt.box, widlcard_prompt.box, parameters.box);
+    TextAreaWidgets   prompt          = pvui_create_text_area();
+    TextAreaWidgets   negative_prompt = pvui_create_text_area();
+    TextAreaWidgets   wildcard_prompt = pvui_create_text_area();
+    ParametersWidgets parameters      = pvui_create_parameters_widgets();
+    
+    GtkWidget* vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), prompt.box         , FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), negative_prompt.box, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), wildcard_prompt.box, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), parameters.box     , FALSE, FALSE, 0);
 
     return (DataWidgets){
-        .box             = box,
+        .box             = vbox,
         .prompt          = prompt,
         .negative_prompt = negative_prompt,
-        .widlcard_prompt = widlcard_prompt,
+        .wildcard_prompt = wildcard_prompt,
         .parameters      = parameters
     };
 }
@@ -387,14 +417,14 @@ DataWidgets pvpui_create_data_widgets(void) {
  *
  * @return A fully initialized PromptViewerUI structure containing all widgets.
  */
-PromptViewerUI pvp_create_prompt_viewer_ui(void) {
+PromptViewerUI pvui_create_prompt_viewer_ui(void) {
     PromptViewerUI ui;
 
     // the 4 widget groups of the Prompt Viewer UI
-    ui.toolbar = pvpui_create_toolbar_widgets();
-    ui.message = pvpui_create_message_widgets();
-    ui.loading = pvpui_create_loading_widgets();
-    ui.data    = pvpui_create_data_widgets();
+    ui.toolbar = pvui_create_toolbar_widgets();
+    ui.message = pvui_create_message_widgets();
+    ui.loading = pvui_create_loading_widgets();
+    ui.data    = pvui_create_data_widgets();
 
     // crear un box interno para los elementos que irán dentro del scroll
     GtkWidget *scroll_content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -420,32 +450,32 @@ PromptViewerUI pvp_create_prompt_viewer_ui(void) {
     return ui;
 }
 
-void pvpui_hide_all_widgets(const PromptViewerUI* ui)
+void pvui_hide_all_widgets(const PromptViewerUI* ui)
 {
     gtk_widget_set_visible(ui->message.box, FALSE);
     gtk_widget_set_visible(ui->loading.box, FALSE);
     gtk_widget_set_visible(ui->data.box   , FALSE);
 }
 
-void pvpui_show_message(const PromptViewerUI* ui,
-                        const gchar*          message
+void pvui_show_message(const PromptViewerUI* ui,
+                       const gchar*          message
 ){
     if (!ui || !message) { return; }
 
-    pvpui_hide_all_widgets(ui);
+    pvui_hide_all_widgets(ui);
     gtk_widget_set_visible(ui->message.box, TRUE);
     gtk_label_set_text(GTK_LABEL(ui->message.label), message);
 }
 
-void pvpui_show_params(const PromptViewerUI* ui,
-                       const PeParams*       params
+void pvui_show_params(const PromptViewerUI* ui,
+                      const PeParams*       params
 ){
     // if( !params ) {
-    //     pvpui_show_message(ui,"No generation parameters found in the image.");
+    //     pvui_show_message(ui,"No generation parameters found in the image.");
     //     return;
     // }
 
-    pvpui_hide_all_widgets(ui);
+    pvui_hide_all_widgets(ui);
     gtk_widget_set_visible(ui->data.box, TRUE);
 
     bool show_prompt = params->prompt.has_value;
@@ -454,5 +484,20 @@ void pvpui_show_params(const PromptViewerUI* ui,
         GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ui->data.prompt.text_view));
         gtk_text_buffer_set_text(buffer, params->prompt.value, -1);
     }
+
+    bool show_negative = params->negative_prompt.has_value;
+    gtk_widget_set_visible(ui->data.negative_prompt.box, show_negative);
+    if (show_negative) {
+        GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ui->data.negative_prompt.text_view));
+        gtk_text_buffer_set_text(buffer, params->prompt.value, -1);
+    }
+
+    bool show_wildcard = params->wildcard_prompt.has_value;
+    gtk_widget_set_visible(ui->data.wildcard_prompt.box, show_wildcard);
+    if (show_wildcard) {
+        GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ui->data.wildcard_prompt.text_view));
+        gtk_text_buffer_set_text(buffer, params->wildcard_prompt.value, -1);
+    }
+
 
 }

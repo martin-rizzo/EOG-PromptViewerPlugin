@@ -439,7 +439,7 @@ show_message( SDPromptViewerPlugin *plugin,
 {
     GtkBuilder *builder = plugin->page_builder;
     if( !builder ) { return; }
-    pvpui_hide_all_widgets(&plugin->ui);
+    pvui_hide_all_widgets(&plugin->ui);
     //display_text( builder , "message_label", message );
     //show_widget( builder  , "message_group", TRUE    );
 }
@@ -465,7 +465,7 @@ show_spinner( SDPromptViewerPlugin *plugin )
     GtkBuilder *builder = plugin->page_builder;
     if( !builder ) { return; }
 
-    pvpui_hide_all_widgets(&plugin->ui);
+    pvui_hide_all_widgets(&plugin->ui);
     //hide_all_widgets( builder );
     //show_widget( builder, "loading_group", TRUE );
 }
@@ -675,7 +675,7 @@ static void
 on_generation_params_loaded(const PeParams* params, gpointer user_ptr, int user_int) {
     SDPromptViewerPlugin *plugin = SDPROMPT_VIEWER_PLUGIN( user_ptr );
     set_image_generation_params( plugin, params );
-    pvpui_show_params(&plugin->ui, plugin->image_generation_params);
+    pvui_show_params(&plugin->ui, plugin->image_generation_params);
 
     if( plugin->force_visibility ) {
         if( plugin->sidebar ) {
@@ -701,7 +701,7 @@ on_image_changed(EogThumbView*         view,
 ){
     
     if( eog_thumb_view_get_n_selected( view ) == 0 ) {
-        pvpui_show_message(&plugin->ui, "No image selected.");
+        pvui_show_message(&plugin->ui, "No image selected.");
         return;
     }
     
@@ -779,7 +779,7 @@ on_activate( EogWindowActivatable *activatable )
     plugin->thumbview = EOG_THUMB_VIEW( eog_window_get_thumb_view( window ) );
     plugin->sidebar   = EOG_SIDEBAR( eog_window_get_sidebar( window ) );
 
-    plugin->ui   = pvp_create_prompt_viewer_ui();
+    plugin->ui   = pvui_create_prompt_viewer_ui();
     plugin->page = plugin->ui.box;
 
     //plugin->page = GTK_WIDGET(plugin->ui_prompt.box);

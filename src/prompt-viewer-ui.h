@@ -16,39 +16,16 @@
 #include <gtk/gtk.h>
 #include <promptex/promptex.h>
 
-struct LabelButtonWidgets {
-    GtkWidget* box;
-    GtkWidget* label;
-    GtkWidget* button;
-};
-typedef struct LabelButtonWidgets LabelButtonWidgets;
-
-LabelButtonWidgets pvpui_create_label_button(
-    const gchar* label_text,
-    const gchar* button_text
-);
 
 
-struct TextAreaWidgets {
+typedef struct TextAreaWidgets {
     GtkWidget* box;         // El contenedor principal (GtkBox)
     GtkWidget* label;       // El GtkLabel del título del Frame
     GtkWidget* copy_button; // El GtkButton para copiar el texto al clipboard
     GtkWidget* text_view;   // El GtkTextView para el contenido
-};
-typedef struct TextAreaWidgets TextAreaWidgets;
-
-TextAreaWidgets pvpui_create_text_area();
+} TextAreaWidgets;
 
 
-
-
-GtkWidget* pvpui_create_pane_array(GtkWidget* widgets[], int count);
-GtkWidget* pvpui_create_pane4(GtkWidget* top,
-                              GtkWidget* middle_top,
-                              GtkWidget* middle_bottom,
-                              GtkWidget* bottom);
-
-                              
 
 
 
@@ -64,7 +41,6 @@ struct ParametersWidgets {
 };
 typedef struct ParametersWidgets ParametersWidgets;
 
-ParametersWidgets pvpui_create_parameters_widgets();
 
 struct ToolBarWidgets {
     GtkWidget*   box;
@@ -89,26 +65,32 @@ struct DataWidgets {
     GtkWidget*        box;
     TextAreaWidgets   prompt;
     TextAreaWidgets   negative_prompt;
-    TextAreaWidgets   widlcard_prompt;
+    TextAreaWidgets   wildcard_prompt;
     ParametersWidgets parameters;
 };
 typedef struct DataWidgets DataWidgets;
 
-struct PromptViewerUI {
-    GtkWidget*      box;
-    ToolBarWidgets  toolbar;
-    MessageWidgets  message;
-    LoadingWidgets  loading;
-    DataWidgets     data;
-};
-typedef struct PromptViewerUI PromptViewerUI;
+
+/**
+ * The main structure containing all widgets for the Prompt Viewer UI.
+ *
+ * This structure serves as the root container for the entire Prompt Viewer
+ * plugin interface, aggregating the toolbar, message display, loading
+ * indicator, and data panels (prompts and parameters).
+ */
+typedef struct PromptViewerUI {
+    GtkWidget*      box;     ///< The main container widget for the entire UI.
+    ToolBarWidgets  toolbar; ///< The toolbar widget group containing action buttons.
+    MessageWidgets  message; ///< The message widget group for displaying informational text.
+    LoadingWidgets  loading; ///< The loading widget group for indicating ongoing processes.
+    DataWidgets     data;    ///< The data widget group displaying prompts and generation parameters.
+} PromptViewerUI;
 
 
-
-PromptViewerUI pvp_create_prompt_viewer_ui(void);
-void pvpui_hide_all_widgets(const PromptViewerUI* ui);
-void pvpui_show_message(const PromptViewerUI* ui, const gchar* message);
-void pvpui_show_params(const PromptViewerUI* ui, const PeParams* params);
+PromptViewerUI pvui_create_prompt_viewer_ui(void);
+void pvui_hide_all_widgets(const PromptViewerUI* ui);
+void pvui_show_message(const PromptViewerUI* ui, const gchar* message);
+void pvui_show_params(const PromptViewerUI* ui, const PeParams* params);
 
 
 #endif /*PVP_PROMPT_VIEWER_UI_H*/
