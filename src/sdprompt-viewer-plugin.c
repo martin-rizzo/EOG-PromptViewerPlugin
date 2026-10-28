@@ -47,6 +47,7 @@
 
 #include <promptex/promptex.h>
 #include "prompt-viewer-ui.h"
+#include "prompt-viewer-ui.show.h"
 #include "../resources.h"
 #include "themes/themes.h"
 #include "utils_widget.h"
@@ -675,7 +676,7 @@ static void
 on_generation_params_loaded(const PeParams* params, gpointer user_ptr, int user_int) {
     SDPromptViewerPlugin *plugin = SDPROMPT_VIEWER_PLUGIN( user_ptr );
     set_image_generation_params( plugin, params );
-    pvui_show_params(&plugin->ui, plugin->image_generation_params);
+    pvui_show_extraction(&plugin->ui, plugin->image_generation_params);
 
     if( plugin->force_visibility ) {
         if( plugin->sidebar ) {

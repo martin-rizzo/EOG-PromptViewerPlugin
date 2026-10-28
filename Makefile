@@ -122,7 +122,8 @@ GSCHEMA       := $(GSCHEMA_NAME).gschema.xml
 SRCS_C := $(SRCDIR)/sdprompt-viewer-plugin.c \
           $(SRCDIR)/sdprompt-viewer-preferences.c \
 		  $(SRCDIR)/prompt-viewer-ui.c \
-		  $(SRCDIR)/prompt-viewer-ui.resizer.c
+		  $(SRCDIR)/prompt-viewer-ui.resizer.c \
+		  $(SRCDIR)/prompt-viewer-ui.show.c
 
 # Object files derived from the main source files.
 # The auto-generated 'resources.c' is also included,

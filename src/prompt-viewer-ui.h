@@ -26,11 +26,7 @@ typedef struct TextAreaWidgets {
 } TextAreaWidgets;
 
 
-
-
-
-
-struct ParametersWidgets {
+typedef struct ParametersWidgets {
     GtkWidget* box;
     GtkWidget* sampler_field;
     GtkWidget* steps_field;
@@ -38,37 +34,54 @@ struct ParametersWidgets {
     GtkWidget* seed_field;
     GtkWidget* width_field;
     GtkWidget* height_field;
-};
-typedef struct ParametersWidgets ParametersWidgets;
+} ParametersWidgets;
+
+typedef struct HighresFixWidgets {
+    GtkWidget* box;
+    GtkWidget* upscaler_entry;
+    GtkWidget* steps_entry;
+    GtkWidget* denoising_entry;
+    GtkWidget* upscaleby_entry;
+    GtkWidget* width_entry;
+    GtkWidget* height_entry;
+} HighresFixWidgets;
+
+typedef struct InpaintingWidgets {
+    GtkWidget* box;
+    GtkWidget* denoising_entry;
+    GtkWidget* maskblur_entry;
+} InpaintingWidgets;
 
 
-struct ToolBarWidgets {
+typedef struct ToolBarWidgets {
     GtkWidget*   box;
     GtkToolItem* copy_button;
     GtkToolItem* preferences_button;
-};
-typedef struct ToolBarWidgets ToolBarWidgets;
+} ToolBarWidgets;
 
-struct MessageWidgets {
+
+typedef struct MessageWidgets {
     GtkWidget* box;
     GtkWidget* label;
-};
-typedef struct MessageWidgets MessageWidgets;
+} MessageWidgets;
 
-struct LoadingWidgets {
+
+typedef struct LoadingWidgets {
     GtkWidget* box;
     GtkWidget* spinner;
-};
-typedef struct LoadingWidgets LoadingWidgets;
+} LoadingWidgets;
 
-struct DataWidgets {
+
+typedef struct ExtractionWidgets {
     GtkWidget*        box;
     TextAreaWidgets   prompt;
     TextAreaWidgets   negative_prompt;
     TextAreaWidgets   wildcard_prompt;
     ParametersWidgets parameters;
-};
-typedef struct DataWidgets DataWidgets;
+    HighresFixWidgets highresfix;
+    InpaintingWidgets inpainting;
+} ExtractionWidgets;
+
 
 
 /**
@@ -79,18 +92,15 @@ typedef struct DataWidgets DataWidgets;
  * indicator, and data panels (prompts and parameters).
  */
 typedef struct PromptViewerUI {
-    GtkWidget*      box;     ///< The main container widget for the entire UI.
-    ToolBarWidgets  toolbar; ///< The toolbar widget group containing action buttons.
-    MessageWidgets  message; ///< The message widget group for displaying informational text.
-    LoadingWidgets  loading; ///< The loading widget group for indicating ongoing processes.
-    DataWidgets     data;    ///< The data widget group displaying prompts and generation parameters.
+    GtkWidget*        box;       ///< The main container widget for the entire UI.
+    ToolBarWidgets    toolbar;   ///< The toolbar widget group containing action buttons.
+    MessageWidgets    message;   ///< The message widget group for displaying informational text.
+    LoadingWidgets    loading;   ///< The loading widget group for indicating ongoing processes.
+    ExtractionWidgets extraction;///< The data widget group displaying the extracted prompt and parameters.
 } PromptViewerUI;
 
 
 PromptViewerUI pvui_create_prompt_viewer_ui(void);
-void pvui_hide_all_widgets(const PromptViewerUI* ui);
-void pvui_show_message(const PromptViewerUI* ui, const gchar* message);
-void pvui_show_params(const PromptViewerUI* ui, const PeParams* params);
 
 
 #endif /*PVP_PROMPT_VIEWER_UI_H*/

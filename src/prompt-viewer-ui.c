@@ -381,7 +381,7 @@ ParametersWidgets pvui_create_parameters_widgets() {
  * @return
  *     A `DataWidgets` structure containing the data box and all sub-widgets.
  */
-DataWidgets pvui_create_data_widgets(void) {
+ExtractionWidgets pvui_create_extraction_widgets(void) {
 
     TextAreaWidgets   prompt          = pvui_create_text_area();
     TextAreaWidgets   negative_prompt = pvui_create_text_area();
@@ -394,7 +394,7 @@ DataWidgets pvui_create_data_widgets(void) {
     gtk_box_pack_start(GTK_BOX(vbox), wildcard_prompt.box, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), parameters.box     , FALSE, FALSE, 0);
 
-    return (DataWidgets){
+    return (ExtractionWidgets){
         .box             = vbox,
         .prompt          = prompt,
         .negative_prompt = negative_prompt,
@@ -421,17 +421,17 @@ PromptViewerUI pvui_create_prompt_viewer_ui(void) {
     PromptViewerUI ui;
 
     // the 4 widget groups of the Prompt Viewer UI
-    ui.toolbar = pvui_create_toolbar_widgets();
-    ui.message = pvui_create_message_widgets();
-    ui.loading = pvui_create_loading_widgets();
-    ui.data    = pvui_create_data_widgets();
+    ui.toolbar    = pvui_create_toolbar_widgets();
+    ui.message    = pvui_create_message_widgets();
+    ui.loading    = pvui_create_loading_widgets();
+    ui.extraction = pvui_create_extraction_widgets();
 
     // crear un box interno para los elementos que irán dentro del scroll
     GtkWidget *scroll_content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_widget_set_visible(scroll_content_box, TRUE);
-    gtk_box_pack_start(GTK_BOX(scroll_content_box), ui.message.box, FALSE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(scroll_content_box), ui.loading.box, FALSE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(scroll_content_box), ui.data.box   , TRUE , TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(scroll_content_box), ui.message.box   , FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(scroll_content_box), ui.loading.box   , FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(scroll_content_box), ui.extraction.box, TRUE , TRUE, 0);
 
     // crear el contenedor con scroll vertical y añadirle el contenido
     GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
@@ -450,54 +450,3 @@ PromptViewerUI pvui_create_prompt_viewer_ui(void) {
     return ui;
 }
 
-void pvui_hide_all_widgets(const PromptViewerUI* ui)
-{
-    gtk_widget_set_visible(ui->message.box, FALSE);
-    gtk_widget_set_visible(ui->loading.box, FALSE);
-    gtk_widget_set_visible(ui->data.box   , FALSE);
-}
-
-void pvui_show_message(const PromptViewerUI* ui,
-                       const gchar*          message
-){
-    if (!ui || !message) { return; }
-
-    pvui_hide_all_widgets(ui);
-    gtk_widget_set_visible(ui->message.box, TRUE);
-    gtk_label_set_text(GTK_LABEL(ui->message.label), message);
-}
-
-void pvui_show_params(const PromptViewerUI* ui,
-                      const PeParams*       params
-){
-    // if( !params ) {
-    //     pvui_show_message(ui,"No generation parameters found in the image.");
-    //     return;
-    // }
-
-    pvui_hide_all_widgets(ui);
-    gtk_widget_set_visible(ui->data.box, TRUE);
-
-    bool show_prompt = params->prompt.has_value;
-    gtk_widget_set_visible(ui->data.prompt.box, show_prompt);
-    if (show_prompt) {
-        GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ui->data.prompt.text_view));
-        gtk_text_buffer_set_text(buffer, params->prompt.value, -1);
-    }
-
-    bool show_negative = params->negative_prompt.has_value;
-    gtk_widget_set_visible(ui->data.negative_prompt.box, show_negative);
-    if (show_negative) {
-        GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ui->data.negative_prompt.text_view));
-        gtk_text_buffer_set_text(buffer, params->prompt.value, -1);
-    }
-
-    bool show_wildcard = params->wildcard_prompt.has_value;
-    gtk_widget_set_visible(ui->data.wildcard_prompt.box, show_wildcard);
-    if (show_wildcard) {
-        GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(ui->data.wildcard_prompt.text_view));
-        gtk_text_buffer_set_text(buffer, params->wildcard_prompt.value, -1);
-    }
-
-
-}
