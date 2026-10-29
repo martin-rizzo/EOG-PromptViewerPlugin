@@ -676,7 +676,12 @@ static void
 on_generation_params_loaded(const PeParams* params, gpointer user_ptr, int user_int) {
     SDPromptViewerPlugin *plugin = SDPROMPT_VIEWER_PLUGIN( user_ptr );
     set_image_generation_params( plugin, params );
-    pvui_show_extraction(&plugin->ui, plugin->image_generation_params);
+
+    if (params) {
+        pvui_show_extraction(&plugin->ui, plugin->image_generation_params);
+    } else {
+        pvui_show_message(&plugin->ui, "No data");
+    }
 
     if( plugin->force_visibility ) {
         if( plugin->sidebar ) {
