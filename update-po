@@ -13,7 +13,7 @@
 
 # TODO: move ./po -> ./languages
 PO_DIR=./po
-PLUGIN_INPUT=system/sdprompt-viewer.plugin.desktop.in
+PLUGIN_INPUT=system/prompt-viewer.plugin.desktop.in
 COMMAND="$1"
 LOCALE="$2"
 

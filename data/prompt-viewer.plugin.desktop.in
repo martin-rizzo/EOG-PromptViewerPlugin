@@ -2,8 +2,11 @@
 Module=prompt-viewer
 IAge=3
 Name=Prompt Viewer
-Icon=applications-science
 Description=Displays text prompts that are embedded within images from AI image generation applications.
+Icon=applications-science
+Loader=C
 Authors=Martin Rizzo
 Copyright=Copyright © 2023-2026 Martin Rizzo
 Website=https://github.com/martin-rizzo/EOG-PromptViewerPlugin
+Help=https://github.com/martin-rizzo/EOG-PromptViewerPlugin
+Version=0.1.0

@@ -3,7 +3,7 @@
  * @brief   Declares the main user interface for the plugin.
  * @author  Martin Rizzo | <martinrizzo@gmail.com>
  * @date    Mar 25, 2023
- * @repo    https://github.com/martin-rizzo/SDPromptViewer
+ * @repo    https://github.com/martin-rizzo/EOG-PromptViewerPlugin
  * @license MIT
  *//*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Prompt Viewer Plugin for EOG
@@ -121,7 +121,7 @@ struct         _SDPromptViewerPlugin
     EogSidebar    *sidebar;
 
     // Widgets
-    PromptViewerUI    ui;
+    PromptViewerUI pvui;
 
     GtkWidget     *page;
     GtkBuilder    *page_builder;

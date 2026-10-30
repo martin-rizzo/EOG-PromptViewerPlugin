@@ -3,7 +3,7 @@
  * @brief   Provides a basic functionality for creating themes for the plugin.
  * @author  Martin Rizzo | <martinrizzo@gmail.com>
  * @date    Apr 19, 2023
- * @repo    https://github.com/martin-rizzo/SDPromptViewer
+ * @repo    https://github.com/martin-rizzo/EOG-PromptViewerPlugin
  * @license MIT
  *//*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Prompt Viewer Plugin for EOG

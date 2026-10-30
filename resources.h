@@ -3,7 +3,7 @@
  * @brief   Defines constants for accessing resources, such as UI and CSS.
  * @author  Martin Rizzo | <martinrizzo@gmail.com>
  * @date    Mar 26, 2023
- * @repo    https://github.com/martin-rizzo/SDPromptViewer
+ * @repo    https://github.com/martin-rizzo/EOG-PromptViewerPlugin
  * @license MIT
  *//*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Prompt Viewer Plugin for EOG
@@ -32,9 +32,9 @@
  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
 
-/* FILE: resources/org.gnome.eog.plugins.sdprompt-viewer.gschema.xml */
-#define SDPROMPT_VIEWER_GSCHEMA_ID    "org.gnome.eog.plugins.sdprompt-viewer"
-#define SDPROMPT_VIEWER_GSCHEMA_PATH "/org/gnome/eog/plugins/sdprompt-viewer/"
+/* FILE: resources/org.gnome.eog.plugins.prompt-viewer.gschema.xml */
+#define SDPROMPT_VIEWER_GSCHEMA_ID    "org.gnome.eog.plugins.prompt-viewer"
+#define SDPROMPT_VIEWER_GSCHEMA_PATH "/org/gnome/eog/plugins/prompt-viewer/"
 #define     SETTINGS_SHOW_UNKNOWN_PARAMS    "show-unknown-params"
 #define     SETTINGS_FORCE_MINIMUM_WIDTH    "force-minimum-width"
 #define     SETTINGS_MINIMUM_WIDTH          "minimum-width"

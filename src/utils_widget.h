@@ -3,7 +3,7 @@
  * @brief   Utility functions for displaying text and numbers in GTK widgets.
  * @author  Martin Rizzo | <martinrizzo@gmail.com>
  * @date    Mar 25, 2023
- * @repo    https://github.com/martin-rizzo/SDPromptViewer
+ * @repo    https://github.com/martin-rizzo/EOG-PromptViewerPlugin
  * @license MIT
  *//*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Prompt Viewer Plugin for EOG

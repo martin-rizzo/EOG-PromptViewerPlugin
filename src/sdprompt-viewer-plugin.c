@@ -3,7 +3,7 @@
  * @brief   Implementation of the main user interface for the plugin.
  * @author  Martin Rizzo | <martinrizzo@gmail.com>
  * @date    Mar 25, 2023
- * @repo    https://github.com/martin-rizzo/SDPromptViewer
+ * @repo    https://github.com/martin-rizzo/EOG-PromptViewerPlugin
  * @license MIT
  *//*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Prompt Viewer Plugin for EOG
@@ -105,6 +105,8 @@ G_DEFINE_DYNAMIC_TYPE_EXTENDED(
         EOG_TYPE_WINDOW_ACTIVATABLE, eog_window_activatable_iface_init)
 )
 
+
+const char *PVP_VERSION = "@(#) PVP_VERSION: 0.1.0";
 
 /*----------------------  INITIALIZATION/DESTRUCTION ----------------------*/
 
@@ -466,7 +468,7 @@ show_spinner( SDPromptViewerPlugin *plugin )
     GtkBuilder *builder = plugin->page_builder;
     if( !builder ) { return; }
 
-    pvui_hide_all_widgets(&plugin->ui);
+    pvui_hide_all_widgets(&plugin->pvui);
     //hide_all_widgets( builder );
     //show_widget( builder, "loading_group", TRUE );
 }
@@ -678,9 +680,9 @@ on_generation_params_loaded(const PeParams* params, gpointer user_ptr, int user_
     set_image_generation_params( plugin, params );
 
     if (params) {
-        pvui_show_extraction(&plugin->ui, plugin->image_generation_params);
+        pvui_show_extraction(&plugin->pvui, plugin->image_generation_params);
     } else {
-        pvui_show_message(&plugin->ui, "No data");
+        pvui_show_message(&plugin->pvui, "No data");
     }
 
     if( plugin->force_visibility ) {
@@ -707,7 +709,7 @@ on_image_changed(EogThumbView*         view,
 ){
     
     if( eog_thumb_view_get_n_selected( view ) == 0 ) {
-        pvui_show_message(&plugin->ui, "No image selected.");
+        pvui_show_message(&plugin->pvui, "No image selected.");
         return;
     }
     
@@ -785,23 +787,13 @@ on_activate( EogWindowActivatable *activatable )
     plugin->thumbview = EOG_THUMB_VIEW( eog_window_get_thumb_view( window ) );
     plugin->sidebar   = EOG_SIDEBAR( eog_window_get_sidebar( window ) );
 
-    plugin->ui   = pvui_create_prompt_viewer_ui();
-    plugin->page = plugin->ui.box;
+    plugin->pvui = pvui_create_prompt_viewer_ui();
+    plugin->page = plugin->pvui.box;
 
     //plugin->page = GTK_WIDGET(plugin->ui_prompt.box);
 
     /*-- add the user interface to the sidebar */
     eog_sidebar_add_page( plugin->sidebar, _("Prompt Viewer Plugin"), plugin->page );
-    gtk_widget_show_all( plugin->page );
-
-#if 0
-    plugin->page      = get_widget( plugin->page_builder, "viewport1" );
-
-
-    /*-- add the user interface to the sidebar */
-    eog_sidebar_add_page( plugin->sidebar,
-                          _("Prompt Viewer Plugin"),
-                          plugin->page );
     gtk_widget_show_all( plugin->page );
 
     /*-- binding configurable properties --*/
@@ -819,6 +811,17 @@ on_activate( EogWindowActivatable *activatable )
                      plugin, "border-size", G_SETTINGS_BIND_GET);
     g_settings_bind( settings, SETTINGS_FONT_SIZE,
                      plugin, "font-size", G_SETTINGS_BIND_GET);
+
+#if 0
+    plugin->page      = get_widget( plugin->page_builder, "viewport1" );
+
+
+    /*-- add the user interface to the sidebar */
+    eog_sidebar_add_page( plugin->sidebar,
+                          _("Prompt Viewer Plugin"),
+                          plugin->page );
+    gtk_widget_show_all( plugin->page );
+
     
 #endif
 

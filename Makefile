@@ -2,7 +2,7 @@
 # Brief   : Compiles, installs, and uninstalls the SD Prompt Viewer plugin
 # Author  : Martin Rizzo | <martinrizzo@gmail.com>
 # Date    : Apr 25, 2023
-# Repo    : https://github.com/martin-rizzo/SDPromptViewer
+# Repo    : https://github.com/martin-rizzo/EOG-PromptViewerPlugin
 # License : MIT
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #                       Prompt Viewer Plugin for EOG
@@ -105,8 +105,8 @@ endif
 #============================================================================
 # Final Target Names & Configuration
 #============================================================================
-GSCHEMA_INPUT := system/sdprompt-viewer.gschema.xml.in
-PLUGIN_INPUT  := system/sdprompt-viewer.plugin.desktop.in
+GSCHEMA_INPUT := data/prompt-viewer.gschema.xml.in
+PLUGIN_INPUT  := data/prompt-viewer.plugin.desktop.in
 RESOURCES_C   := $(OBJDIR)/$(PROJECT_NAME)-resources.c
 RESOURCES_XML := resources.xml
 
@@ -192,9 +192,9 @@ $(SRCDIR):
 # Installation and System Integration
 #============================================================================
 install: $(PLUGIN_DESC) $(PLUGIN_MODULE) $(GSCHEMA)
-	install -D $(PLUGIN_DESC)  $(EOG_PLUGINS_DIR)/$(PLUGIN_DESC)
+	install -D $(PLUGIN_DESC)   $(EOG_PLUGINS_DIR)/$(PLUGIN_DESC)
 	install -D $(PLUGIN_MODULE) $(EOG_PLUGINS_DIR)/$(PLUGIN_MODULE)
-	install -D $(GSCHEMA) $(GIO_SCHEMAS_DIR)/$(GSCHEMA)
+	install -D $(GSCHEMA)       $(GIO_SCHEMAS_DIR)/$(GSCHEMA)
 	glib-compile-schemas $(GIO_SCHEMAS_DIR)
 
 remove:

@@ -3,7 +3,7 @@
  * @brief   Implementation of the "Preferences" user interface for the plugin.
  * @author  Martin Rizzo | <martinrizzo@gmail.com>
  * @date    Mar 26, 2023
- * @repo    https://github.com/martin-rizzo/SDPromptViewer
+ * @repo    https://github.com/martin-rizzo/EOG-PromptViewerPlugin
  * @license MIT
  *//*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Prompt Viewer Plugin for EOG

@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  GSettings Schema for the EOG Prompt Viewer Plugin
+  
+  This file defines the configuration keys (preferences) used by the plugin.
+  It allows persistent storage of settings such as sidebar behavior, visual 
+  styles, and custom interface options via the GNOME dconf backend.
+  
+  Note: This template (.xml.in) replaces @GETTEXT_PACKAGE@ during the build 
+  process to register the proper localization domain.
+-->
 <schemalist>
   <schema gettext-domain="@GETTEXT_PACKAGE@"
-          id="org.gnome.eog.plugins.sdprompt-viewer"
-          path="/org/gnome/eog/plugins/sdprompt-viewer/">
+          id="org.gnome.eog.plugins.prompt-viewer"
+          path="/org/gnome/eog/plugins/prompt-viewer/">
    
   <key name="show-unknown-params" type="b">
     <summary>Show unknown generation parameters</summary>
