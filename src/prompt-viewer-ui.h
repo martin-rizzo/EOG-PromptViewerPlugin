@@ -56,6 +56,7 @@ typedef struct InpaintingWidgets {
 typedef struct ToolBarWidgets {
     GtkWidget*   box;
     GtkToolItem* copy_button;
+    GtkToolItem* auto_height_button;
     GtkToolItem* preferences_button;
 } ToolBarWidgets;
 
@@ -100,7 +101,7 @@ typedef struct PromptViewerUI {
 } PromptViewerUI;
 
 
-PromptViewerUI pvui_create_prompt_viewer_ui(void);
+PromptViewerUI* pvui_create_prompt_viewer_ui(void);
 
 
 #endif /*PVP_PROMPT_VIEWER_UI_H*/

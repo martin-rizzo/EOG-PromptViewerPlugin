@@ -235,6 +235,44 @@ pvui_create_text_area(
     };
 }
 
+/**
+ * Automatically adjusts the height of the text area widget group.
+ *
+ * Calculates the optimal height required to display the text content
+ * without unnecessary vertical scrolling or excessive empty space,
+ * and applies it to the widget group.
+ *
+ * @param text_area_widgets Pointer to the text area widgets structure to adjust.
+ */
+static void
+pvui_auto_adjust_text_area(TextAreaWidgets* text_area_widgets) {
+    if (!text_area_widgets) { return; }
+
+    // currently a dummy function that sets the widget group height to 200px
+    if (gtk_widget_get_visible(text_area_widgets->box)) {
+        gtk_widget_set_size_request(text_area_widgets->box, -1, 200);
+    }
+}
+
+/*=============================== EVENTS =================================*/
+
+/**
+ * Callback function triggered when the "Auto Height" button is clicked.
+ *
+ * Adjusts the height of the text area widgets for the prompt, negative
+ * prompt, and wildcard prompt to ensure they fit their content properly.
+ *
+ * @param button     The GtkButton widget that was clicked.
+ * @param user_data  Pointer to the PromptViewerUI structure.
+ */
+static void
+on_auto_height_clicked(GtkWidget *button, gpointer user_data) {
+    PromptViewerUI* pvui = (PromptViewerUI*)user_data;
+    pvui_auto_adjust_text_area(&pvui->extraction.prompt);
+    pvui_auto_adjust_text_area(&pvui->extraction.negative_prompt);
+    pvui_auto_adjust_text_area(&pvui->extraction.wildcard_prompt);
+}
+
 /*======================== CREATING WIDGET GROUPS ========================*/
 
 /**
@@ -270,7 +308,17 @@ ToolBarWidgets pvui_create_toolbar_widgets(void) {
     gtk_tool_item_set_homogeneous(separator, TRUE);
     gtk_toolbar_insert(GTK_TOOLBAR(toolbar), separator, -1);
 
-    // third element: GtkToolButton (preferences_button)
+    // third element: GtkToolButton (auto_height_button)
+    GtkToolItem *auto_height_button = gtk_tool_button_new(NULL, "Auto Height");
+    gtk_widget_set_visible(GTK_WIDGET(auto_height_button), TRUE);
+    gtk_widget_set_can_focus(GTK_WIDGET(auto_height_button), FALSE);
+    gtk_tool_button_set_use_underline(GTK_TOOL_BUTTON(auto_height_button), TRUE);
+    gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(auto_height_button), "media-view-subtitles-symbolic");
+    gtk_tool_item_set_expand(auto_height_button, FALSE);
+    gtk_tool_item_set_homogeneous(auto_height_button, TRUE);
+    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), auto_height_button, -1);
+
+    // fourth element: GtkToolButton (preferences_button)
     GtkToolItem *preferences_button = gtk_tool_button_new(NULL, "Preferences");
     gtk_widget_set_visible(GTK_WIDGET(preferences_button), TRUE);
     gtk_widget_set_can_focus(GTK_WIDGET(preferences_button), FALSE);
@@ -283,6 +331,7 @@ ToolBarWidgets pvui_create_toolbar_widgets(void) {
     return (ToolBarWidgets){
         .box                = toolbar,
         .copy_button        = copy_button,
+        .auto_height_button = auto_height_button,
         .preferences_button = preferences_button
     };
 }
@@ -417,23 +466,27 @@ ExtractionWidgets pvui_create_extraction_widgets(void) {
  *
  * @return A fully initialized PromptViewerUI structure containing all widgets.
  */
-PromptViewerUI pvui_create_prompt_viewer_ui(void) {
-    PromptViewerUI ui;
+PromptViewerUI* pvui_create_prompt_viewer_ui(void) {
+    PromptViewerUI* pvui = g_new0(PromptViewerUI, 1);
 
-    // the 4 widget groups of the Prompt Viewer UI
-    ui.toolbar    = pvui_create_toolbar_widgets();
-    ui.message    = pvui_create_message_widgets();
-    ui.loading    = pvui_create_loading_widgets();
-    ui.extraction = pvui_create_extraction_widgets();
+    // first, create the toolbar that is always visible at the top
+    pvui->toolbar = pvui_create_toolbar_widgets();
 
-    // crear un box interno para los elementos que irán dentro del scroll
+    // next, create the 3 widget groups;
+    // only one of which will be visible at a time;
+    // these widget groups will also be able to scroll vertically
+    pvui->message    = pvui_create_message_widgets();
+    pvui->loading    = pvui_create_loading_widgets();
+    pvui->extraction = pvui_create_extraction_widgets();
+
+    // create the container box and insert the 3 widget groups (that will scroll vertically)
     GtkWidget *scroll_content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_widget_set_visible(scroll_content_box, TRUE);
-    gtk_box_pack_start(GTK_BOX(scroll_content_box), ui.message.box   , FALSE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(scroll_content_box), ui.loading.box   , FALSE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(scroll_content_box), ui.extraction.box, TRUE , TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(scroll_content_box), pvui->message.box   , FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(scroll_content_box), pvui->loading.box   , FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(scroll_content_box), pvui->extraction.box, TRUE , TRUE, 0);
 
-    // crear el contenedor con scroll vertical y añadirle el contenido
+    // create the vertical scroll container and add the container box (containing the 3 widget groups)
     GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
     gtk_widget_set_visible(scrolled_window, TRUE);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
@@ -441,12 +494,19 @@ PromptViewerUI pvui_create_prompt_viewer_ui(void) {
                                    GTK_POLICY_ALWAYS);
     gtk_container_add(GTK_CONTAINER(scrolled_window), scroll_content_box);
 
-    // crear el VBox principal con solo los 2 componentes principales
-    ui.box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_widget_set_visible(ui.box, TRUE);
-    gtk_box_pack_start(GTK_BOX(ui.box), ui.toolbar.box, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(ui.box), scrolled_window, TRUE, TRUE, 0);
+    // create the main VBox with just the two primary components
+    pvui->box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_visible(pvui->box, TRUE);
+    gtk_box_pack_start(GTK_BOX(pvui->box), pvui->toolbar.box, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(pvui->box), scrolled_window, TRUE, TRUE, 0);
 
-    return ui;
+    // connect events that are handled internally
+    g_signal_connect(G_OBJECT(pvui->toolbar.auto_height_button), "clicked", G_CALLBACK(on_auto_height_clicked), pvui);
+
+    // bind the lifetime of the structure to the main widget
+    g_object_set_data_full(G_OBJECT(pvui->box), 
+                           "PromptViewerUI", pvui,    //< unique text key and pointer to the structure
+                           (GDestroyNotify)g_free); //< function called when the widget is destroyed
+    return pvui;
 }
 

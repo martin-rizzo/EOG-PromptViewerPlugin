@@ -468,7 +468,7 @@ show_spinner( SDPromptViewerPlugin *plugin )
     GtkBuilder *builder = plugin->page_builder;
     if( !builder ) { return; }
 
-    pvui_hide_all_widgets(&plugin->pvui);
+    pvui_hide_all_widgets(plugin->pvui);
     //hide_all_widgets( builder );
     //show_widget( builder, "loading_group", TRUE );
 }
@@ -680,9 +680,9 @@ on_generation_params_loaded(const PeParams* params, gpointer user_ptr, int user_
     set_image_generation_params( plugin, params );
 
     if (params) {
-        pvui_show_extraction(&plugin->pvui, plugin->image_generation_params);
+        pvui_show_extraction(plugin->pvui, plugin->image_generation_params);
     } else {
-        pvui_show_message(&plugin->pvui, "No data");
+        pvui_show_message(plugin->pvui, "No data");
     }
 
     if( plugin->force_visibility ) {
@@ -709,7 +709,7 @@ on_image_changed(EogThumbView*         view,
 ){
     
     if( eog_thumb_view_get_n_selected( view ) == 0 ) {
-        pvui_show_message(&plugin->pvui, "No image selected.");
+        pvui_show_message(plugin->pvui, "No image selected.");
         return;
     }
     
@@ -788,7 +788,7 @@ on_activate( EogWindowActivatable *activatable )
     plugin->sidebar   = EOG_SIDEBAR( eog_window_get_sidebar( window ) );
 
     plugin->pvui = pvui_create_prompt_viewer_ui();
-    plugin->page = plugin->pvui.box;
+    plugin->page = plugin->pvui->box;
 
     //plugin->page = GTK_WIDGET(plugin->ui_prompt.box);
 
@@ -832,17 +832,17 @@ on_activate( EogWindowActivatable *activatable )
                           G_CALLBACK( on_image_changed ),
                           plugin );
 
-    // plugin->preferences_button_signal_id =
-    //     g_signal_connect( get_widget( plugin->page_builder, "preferences_button" ),
-    //                       "clicked",
-    //                       G_CALLBACK( on_preferences_clicked ),
-    //                       plugin );
+    plugin->preferences_button_signal_id =
+        g_signal_connect( G_OBJECT( plugin->pvui->toolbar.preferences_button),
+                          "clicked",
+                          G_CALLBACK( on_preferences_clicked ),
+                          plugin );
         
-    // plugin->copy_button_signal_id =
-    //     g_signal_connect( get_widget( plugin->page_builder, "copy_button" ),
-    //                       "clicked",
-    //                       G_CALLBACK( on_copy_data_clicked ),
-    //                       plugin );
+    plugin->copy_button_signal_id =
+        g_signal_connect( G_OBJECT( plugin->pvui->toolbar.copy_button),
+                          "clicked",
+                          G_CALLBACK( on_copy_data_clicked ),
+                          plugin );
 
 
     /*-- force update image information for first time --*/
@@ -871,11 +871,13 @@ on_deactivate( EogWindowActivatable *activatable )
     /*-- remove signals --*/
     g_signal_handler_disconnect( plugin->thumbview,
                                  plugin->thumbview_sel_changed_signal_id );
-    g_signal_handler_disconnect( get_widget( plugin->page_builder, "preferences_button" ),
+    g_signal_handler_disconnect( plugin->pvui->toolbar.preferences_button,
                                  plugin->preferences_button_signal_id );
-    g_signal_handler_disconnect( get_widget( plugin->page_builder, "copy_button" ),
+    g_signal_handler_disconnect( plugin->pvui->toolbar.copy_button,
                                  plugin->copy_button_signal_id );
     
+    plugin->pvui = NULL;
+
     if( plugin->page_builder ) {
         g_object_unref( plugin->page_builder );
         plugin->page_builder = NULL;

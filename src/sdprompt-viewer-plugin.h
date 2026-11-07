@@ -116,15 +116,15 @@ struct         _SDPromptViewerPlugin
 {
     PeasExtensionBase parent_instance;
 
-    EogWindow     *window;
-    EogThumbView  *thumbview;
-    EogSidebar    *sidebar;
+    EogWindow*      window;
+    EogThumbView*   thumbview;
+    EogSidebar*     sidebar;
 
     // Widgets
-    PromptViewerUI pvui;
+    PromptViewerUI* pvui;
 
-    GtkWidget     *page;
-    GtkBuilder    *page_builder;
+    GtkWidget*      page;
+    GtkBuilder*     page_builder;
     
     /* Properties */
     gboolean        show_unknown_params;
