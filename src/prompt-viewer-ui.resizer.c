@@ -132,6 +132,30 @@ on_motion_notify(GtkWidget*      widget,
 }
 
 /**
+ * Callback invoked when the event box obtains its native GdkWindow.
+ *
+ * This function retrieves the native `GdkWindow` associated with the event box
+ * and sets a vertical resize cursor ("ns-resize") to serve as a visual cue to
+ * the user that the widget can be dragged vertically.
+ *
+ * @param widget    The event box widget that is being realized.
+ * @param user_data Additional user data (unused in this callback).
+ */
+static void
+on_event_box_realize(GtkWidget* widget,
+                     gpointer   user_data
+){
+    GdkWindow *window = gtk_widget_get_window(widget);
+    if (window) {
+        // "ns-resize" creates the standard vertical resize cursor (north-south).
+        GdkDisplay* display = gdk_window_get_display(window);
+        GdkCursor*  cursor  = gdk_cursor_new_from_name(display, "ns-resize");
+        gdk_window_set_cursor(window, cursor);
+        g_object_unref(cursor); //< safely release the local reference.
+    }
+}
+
+/**
  * Callback to free the drag context memory.
  *
  * This function is invoked when the associated grip widget is destroyed.
@@ -161,16 +185,37 @@ GtkWidget* pvui_create_resizer(GtkWidget* target_widget,
                                int        min_height,
                                int        max_height
 ){
-
-    // create a GtkEventBox and insert a separator as a 'handle'
+    // create a GtkEventBox that will serve as the draggable resizer
     GtkWidget *event_box = gtk_event_box_new();
-    GtkWidget *handle    = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-    gtk_container_add(GTK_CONTAINER(event_box), handle);
     
-    // set the GtkEventBox height to 8px for easy clicking
-    gtk_widget_set_size_request(event_box, -1, 8);
-    
-    // create the drag context for this grip
+    // set the total height of the interactive zone to 16px for easy clicking.
+    gtk_widget_set_size_request(event_box, -1, 16);
+
+    // connect the "realize" signal to set the "vertical-resize" cursor
+    g_signal_connect(event_box, "realize", G_CALLBACK(on_event_box_realize), NULL);
+
+    // apply CSS styling directly to the event_box using a dedicated class
+    GtkStyleContext *context = gtk_widget_get_style_context(event_box);
+    gtk_style_context_add_class(context, "pvui-resizer");
+
+    // create a small, visually appealing grip using CSS
+    GtkCssProvider *provider = gtk_css_provider_new();
+    const char *css = 
+        ".pvui-resizer {"
+        "  background-image   :"
+        "    linear-gradient(to bottom, alpha(white, 0.1) 0px, alpha(white, 0.1) 1px, transparent 1px),"
+        "    linear-gradient(to right, transparent 35%, alpha(black, 0.3) 35%, alpha(black, 0.3) 65%, transparent 65%);"
+        "  background-size    : 100% 8px;"
+        "  background-position: center top;"
+        "  background-repeat  : no-repeat;"
+        "  background-color   : transparent;"
+        "  min-height: 16px;"
+        "}";
+    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(provider);
+
+    // initialize the drag context
     DragContext *ctx = g_new0(DragContext, 1);
     ctx->target_widget = target_widget;
     ctx->dragging      = FALSE;
@@ -179,7 +224,7 @@ GtkWidget* pvui_create_resizer(GtkWidget* target_widget,
     ctx->y_root_start  = 0.0;
     ctx->height_start  = 0;
 
-    // connect mouse signals to the GtkEventBox
+    // connect mouse event signals to the GtkEventBox
     g_signal_connect_data(event_box, "button-press-event"  , G_CALLBACK(on_button_press  ), ctx, (GClosureNotify)on_context_destroy, 0);
     g_signal_connect     (event_box, "button-release-event", G_CALLBACK(on_button_release), ctx);
     g_signal_connect     (event_box, "motion-notify-event" , G_CALLBACK(on_motion_notify ), ctx);

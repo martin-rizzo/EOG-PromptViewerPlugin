@@ -203,9 +203,9 @@ pvui_create_text_area(
     gtk_widget_set_can_focus(scrolled_window, TRUE);
     gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolled_window), GTK_SHADOW_IN);
 
-    // apply "group-box" CSS class to the ScrolledWindow
-    GtkStyleContext *context_scrolled = gtk_widget_get_style_context(scrolled_window);
-    gtk_style_context_add_class(context_scrolled, "group-box");
+    //// apply "group-box" CSS class to the ScrolledWindow
+    //GtkStyleContext *context_scrolled = gtk_widget_get_style_context(scrolled_window);
+    //gtk_style_context_add_class(context_scrolled, "group-box");
 
     // GtkTextView inside the ScrolledWindow
     GtkWidget *prompt_text_view = gtk_text_view_new();
