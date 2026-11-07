@@ -500,6 +500,10 @@ PromptViewerUI* pvui_create_prompt_viewer_ui(void) {
     gtk_box_pack_start(GTK_BOX(pvui->box), pvui->toolbar.box, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(pvui->box), scrolled_window, TRUE, TRUE, 0);
 
+    // apply "promptviewer" CSS class to the main box
+    GtkStyleContext *context_box = gtk_widget_get_style_context(pvui->box);
+    gtk_style_context_add_class(context_box, "promptviewerbox");
+
     // connect events that are handled internally
     g_signal_connect(G_OBJECT(pvui->toolbar.auto_height_button), "clicked", G_CALLBACK(on_auto_height_clicked), pvui);
 

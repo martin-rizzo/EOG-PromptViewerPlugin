@@ -39,32 +39,32 @@
 @define-color col_button     #3C2A26; /* Dark Sienna  */
 
 
-.sdpromptviewer {
+.promptviewerbox {
     background-color: @col_background;
 }
 
-.sdpromptviewer toolbar {
+.promptviewerbox toolbar {
     background-color: transparent;
 }
 
 /*--------------------------- TOOLBAR BUTTONS -----------------------------*/
 
-.sdpromptviewer toolbutton button {
+.promptviewerbox toolbutton button {
     border: 1px solid mix( @col_button, @col_label, 0.2 );;
     background-color: @col_button;
 }
 
-.sdpromptviewer toolbutton.noticeable button {
+.promptviewerbox toolbutton.noticeable button {
     font-weight: bold;
 }
 
-.sdpromptviewer toolbutton.noticeable label {
+.promptviewerbox toolbutton.noticeable label {
     color: @col_label;
 }
 
 /*----------------------------- TITLE WIDGET ------------------------------*/
 
-.sdpromptviewer label.group-title {
+.promptviewerbox label.group-title {
     color: @col_title;
     margin-top: 8px;
     margin-bottom: 4px;
@@ -75,14 +75,14 @@
 
 /*----------------------------- LABEL WIDGET ------------------------------*/
 
-.sdpromptviewer label {
+.promptviewerbox label {
     color: @col_label;
     font-size: 16px;
 }
 
 /*----------------------------- ENTRY WIDGET ------------------------------*/
 
-.sdpromptviewer entry {
+.promptviewerbox entry {
     color: @col_entry;
     background-color: @col_box;
     border-color: #FFF;
@@ -92,12 +92,12 @@
 
 /*------------------------------ TEXT VIEW --------------------------------*/
 
-.sdpromptviewer textview text {
+.promptviewerbox textview text {
     color: @col_entry;
     background-color: transparent;  
 }
 
-.sdpromptviewer textview {
+.promptviewerbox textview {
     color: @col_entry;
     background-color: @col_box;
 }

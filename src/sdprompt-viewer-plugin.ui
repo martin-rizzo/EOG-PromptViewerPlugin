@@ -1206,7 +1206,7 @@
           </object>
         </child>
         <style>
-          <class name="sdpromptviewer"/>
+          <class name="promptviewerbox"/>
         </style>
       </object>
     </child>

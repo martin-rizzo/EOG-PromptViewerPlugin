@@ -40,32 +40,32 @@
 @define-color col_text_button #c0c0c0; /* Silver           */
 
 
-.sdpromptviewer {
+.promptviewerbox {
     background-color: @col_background;
 }
 
-.sdpromptviewer toolbar {
+.promptviewerbox toolbar {
     background-color: transparent;
 }
 
 /*--------------------------- TOOLBAR BUTTONS -----------------------------*/
 
-.sdpromptviewer button label {
+.promptviewerbox button label {
     color: @col_text_button;    
 }
 
-.sdpromptviewer button:hover label {
+.promptviewerbox button:hover label {
     color: shade( @col_text_button, 1.5 );
 }
 
-.sdpromptviewer button {
+.promptviewerbox button {
     background-color: @col_button;
     border: 1px solid mix( @col_button, @col_label, 0.5 );
     transition: none;
     background-image: none;
 }
 
-.sdpromptviewer button:hover {
+.promptviewerbox button:hover {
     background-color: shade( @col_button, 1.5 );
     transition: none;
     background-image: none;
@@ -73,7 +73,7 @@
 
 /*----------------------------- TITLE WIDGET ------------------------------*/
 
-.sdpromptviewer label.group-title {
+.promptviewerbox label.group-title {
     color: @col_title;
     margin-top: 8px;
     margin-bottom: 4px;
@@ -84,7 +84,7 @@
 
 /*----------------------------- LABEL WIDGET ------------------------------*/
 
-.sdpromptviewer label {
+.promptviewerbox label {
     color: @col_label;
     font-size: 14px;
     font-weight: bold;
@@ -92,7 +92,7 @@
 
 /*----------------------------- ENTRY WIDGET ------------------------------*/
 
-.sdpromptviewer entry {
+.promptviewerbox entry {
     color: @col_entry;
     background-color: @col_box;
     border-color: #FF0;
@@ -102,19 +102,19 @@
 
 /*------------------------------ TEXT VIEW --------------------------------*/
 
-.sdpromptviewer textview text {
+.promptviewerbox textview text {
     color: @col_entry;
     background-color: transparent;  
 }
 
-.sdpromptviewer textview {
+.promptviewerbox textview {
     color: @col_entry;
     background-color: @col_box;
 }
 
 /*---------------------------- HORIZONTAL BAR -----------------------------*/
 
-.sdpromptviewer separator.horizontal {
+.promptviewerbox separator.horizontal {
   background-image: linear-gradient(to right, shade(@col_background, 0.5), @col_background);
   min-height: 3px;
   margin-top: 8px;

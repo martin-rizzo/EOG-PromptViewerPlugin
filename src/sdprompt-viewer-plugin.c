@@ -251,11 +251,9 @@ apply_visual_style( SDPromptViewerPlugin *plugin,
         theme.font_size    == klass->current_theme.font_size     )
     { return; }
 
-    /*
     DEBUG_MESSAGE( "## visual-style = %d", theme.visual_style );
     DEBUG_MESSAGE( "## border-size  = %d", theme.border_size  );
     DEBUG_MESSAGE( "## font-size    = %d", theme.font_size    );
-    */
 
     /* remove previous visual styles */
     if( klass->visual_style_provider ) {
@@ -785,12 +783,9 @@ on_activate( EogWindowActivatable *activatable )
     }
     
     plugin->thumbview = EOG_THUMB_VIEW( eog_window_get_thumb_view( window ) );
-    plugin->sidebar   = EOG_SIDEBAR( eog_window_get_sidebar( window ) );
-
-    plugin->pvui = pvui_create_prompt_viewer_ui();
-    plugin->page = plugin->pvui->box;
-
-    //plugin->page = GTK_WIDGET(plugin->ui_prompt.box);
+    plugin->sidebar   = EOG_SIDEBAR   ( eog_window_get_sidebar   ( window ) );
+    plugin->pvui      = pvui_create_prompt_viewer_ui();
+    plugin->page      = plugin->pvui->box;
 
     /*-- add the user interface to the sidebar */
     eog_sidebar_add_page( plugin->sidebar, _("Prompt Viewer Plugin"), plugin->page );
@@ -811,19 +806,6 @@ on_activate( EogWindowActivatable *activatable )
                      plugin, "border-size", G_SETTINGS_BIND_GET);
     g_settings_bind( settings, SETTINGS_FONT_SIZE,
                      plugin, "font-size", G_SETTINGS_BIND_GET);
-
-#if 0
-    plugin->page      = get_widget( plugin->page_builder, "viewport1" );
-
-
-    /*-- add the user interface to the sidebar */
-    eog_sidebar_add_page( plugin->sidebar,
-                          _("Prompt Viewer Plugin"),
-                          plugin->page );
-    gtk_widget_show_all( plugin->page );
-
-    
-#endif
 
     /*-- binding events using signals --*/
     plugin->thumbview_sel_changed_signal_id =

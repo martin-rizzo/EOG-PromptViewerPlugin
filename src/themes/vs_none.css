@@ -33,10 +33,10 @@
 */
 
 /*
-.sdpromptviewer entry { background: #669999; }
+.promptviewerbox entry { background: #669999; }
 */
 
-.sdpromptviewer textview {
+.promptviewerbox textview {
     font-size: 110%;
     /*
     text {
@@ -45,7 +45,7 @@
     */
 }
 
-.sdpromptviewer label {
+.promptviewerbox label {
     /* font-weight: light; */
     font-size: 100%;
     padding-top: 0;
@@ -53,19 +53,19 @@
 }
 
 
-.sdpromptviewer .group-title {
+.promptviewerbox .group-title {
     font-weight: bolder;
     font-size: 110%;
     margin-top: 0.5ex;
     margin-bottom: 0.3ex;
 }
 
-.sdpromptviewer .group-box {
+.promptviewerbox .group-box {
     /* background: #886600; */
     margin-left: 1em;
 }
 
-.sdpromptviewer entry {
+.promptviewerbox entry {
     font-size: 100%;
     padding-top: 0;
     padding-bottom: 0;
@@ -73,11 +73,11 @@
     border-radius: 0;
 }
 
-.sdpromptviewer scrolledwindow {
+.promptviewerbox scrolledwindow {
     border-width: 0;
     border-radius: 0;    
 }
 
-.sdpromptviewer textview {
+.promptviewerbox textview {
     padding: 0.5em;
 }
